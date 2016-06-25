@@ -39,6 +39,7 @@
         android:layout_alignParentEnd="true"
         android:layout_marginEnd="4dp"
         android:adjustViewBounds="true"
+        android:alpha="0.8"
         android:elevation="4dp"
         android:src="@mipmap/ic_marker"
         />

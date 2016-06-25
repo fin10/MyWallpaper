@@ -111,7 +111,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(mAdapter);
         recyclerView.addItemDecoration(new GridSpacingItemDecoration(layoutManager.getSpanCount(),
-                GridSpacingItemDecoration.convertDpToPx(getResources(), 4)));
+                GridSpacingItemDecoration.convertDpToPx(getResources(), 1)));
 
         return root;
     }
@@ -150,14 +150,10 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
     private static final class WallpaperListAdapter extends RecyclerView.Adapter implements WallpaperModel.OnEventListener {
 
-        @NonNull
         private final List<WallpaperModel> mModels;
         private final List<WallpaperModel> mSelectedModels = new ArrayList<>();
-
-        @Nullable
         private final OnItemEventListener mListener;
 
-        @Nullable
         private WallpaperModel mMarkedModel;
         private boolean mSelectionMode = false;
 
@@ -265,10 +261,9 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
         private static final class WallpaperViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
 
-            @Nullable
             private final OnItemEventListener mListener;
 
-            private WallpaperViewHolder(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent, @Nullable OnItemEventListener listener) {
+            public WallpaperViewHolder(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent, @Nullable OnItemEventListener listener) {
                 super(inflater.inflate(R.layout.wallpaper_list_item, parent, false));
                 mListener = listener;
                 itemView.setTag(R.id.image_view, itemView.findViewById(R.id.image_view));
@@ -281,7 +276,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                 clickView.setOnLongClickListener(this);
             }
 
-            private void setModel(@NonNull WallpaperModel model, boolean marked) {
+            public void setModel(@NonNull WallpaperModel model, boolean marked) {
                 setModel(model, marked, false);
                 ((View) itemView.getTag(R.id.check_box)).setVisibility(View.GONE);
             }
