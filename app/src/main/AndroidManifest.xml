@@ -42,6 +42,10 @@
             android:exported="false"
             />
 
+        <receiver
+            android:name=".WallpaperModel$AlarmReceiver"
+            android:exported="false"
+            />
 
     </application>
 
