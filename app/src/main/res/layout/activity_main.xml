@@ -19,7 +19,7 @@
 
         <fragment
             android:id="@+id/wallpaper_list_fragment"
-            android:name="com.fin10.android.mywallpaper.WallpaperListFragment"
+            android:name="com.fin10.android.mywallpaper.list.WallpaperListFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:layout="@layout/fragment_wallpaper_list"/>

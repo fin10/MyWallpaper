@@ -21,14 +21,4 @@ public final class MainActivity extends AppCompatActivity {
             actionBar.setTitle(R.string.app_name);
         }
     }
-
-    @Override
-    public void onBackPressed() {
-        WallpaperListFragment fragment = (WallpaperListFragment) getFragmentManager().findFragmentById(R.id.wallpaper_list_fragment);
-        if (fragment != null && fragment.onBackPressed()) {
-            return;
-        }
-
-        super.onBackPressed();
-    }
 }

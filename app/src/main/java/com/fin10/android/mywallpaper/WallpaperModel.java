@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -90,14 +91,23 @@ public final class WallpaperModel {
         }
     }
 
-    public static void removeModel(@NonNull WallpaperModel model) {
+    public static void removeModel(@NonNull final WallpaperModel model) {
         File file = new File(model.getPath());
         boolean result = file.delete();
-        Log.d("result:%b", result);
+        if (!result) {
+            Log.e("failed to delete. %s", model.getPath());
+            return;
+        }
 
+        Handler handler = new Handler();
         synchronized (sListeners) {
-            for (OnEventListener listener : sListeners) {
-                listener.onRemoved(model);
+            for (final OnEventListener listener : sListeners) {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        listener.onRemoved(model);
+                    }
+                });
             }
         }
     }
@@ -132,8 +142,25 @@ public final class WallpaperModel {
         return mPath;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        WallpaperModel model = (WallpaperModel) o;
+
+        return mPath.equals(model.mPath);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return mPath.hashCode();
+    }
+
     public interface OnEventListener {
         void onAdded(@NonNull WallpaperModel model);
+
         void onRemoved(@NonNull WallpaperModel model);
 
         void onWallpaperChanged(@NonNull WallpaperModel model);

@@ -1,12 +1,21 @@
-package com.fin10.android.mywallpaper;
+package com.fin10.android.mywallpaper.list;
 
+import android.app.Dialog;
 import android.app.Fragment;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.view.ActionMode;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
@@ -14,14 +23,81 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.fin10.android.mywallpaper.Log;
+import com.fin10.android.mywallpaper.R;
+import com.fin10.android.mywallpaper.WallpaperModel;
 import com.fin10.android.mywallpaper.widget.GridSpacingItemDecoration;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class WallpaperListFragment extends Fragment {
+public final class WallpaperListFragment extends Fragment implements OnItemEventListener {
 
     private WallpaperListAdapter mAdapter;
+    private ActionMode mActionMode;
+    private Dialog mDeleteDialog;
+    private final ActionMode.Callback mCallback = new ActionMode.Callback() {
+
+        @Override
+        public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+            getActivity().getMenuInflater().inflate(R.menu.wallpaper_list_fragment, menu);
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public boolean onActionItemClicked(final ActionMode actionMode, MenuItem menuItem) {
+            switch (menuItem.getItemId()) {
+                case R.id.menu_item_share: {
+                    List<WallpaperModel> items = mAdapter.getSelectedItems();
+                    ArrayList<Uri> imageUris = new ArrayList<>();
+                    for (WallpaperModel item : items) {
+                        imageUris.add(Uri.parse(item.getPath()));
+                    }
+
+                    Intent shareIntent = new Intent();
+                    shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE);
+                    shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, imageUris);
+                    shareIntent.setType("image/*");
+                    startActivity(Intent.createChooser(shareIntent, getString(R.string.share)));
+                    actionMode.finish();
+                    break;
+                }
+                case R.id.menu_item_delete: {
+                    if (mDeleteDialog == null) {
+                        mDeleteDialog = new AlertDialog.Builder(getActivity())
+                                .setMessage(R.string.do_you_want_to_delete)
+                                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int which) {
+                                        List<WallpaperModel> items = mAdapter.getSelectedItems();
+                                        mAdapter.remove(items);
+                                        actionMode.finish();
+                                    }
+                                })
+                                .setNegativeButton(android.R.string.no, null)
+                                .create();
+                    }
+                    mDeleteDialog.show();
+                    break;
+                }
+            }
+
+            return true;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode actionMode) {
+            mAdapter.setSelectionMode(false);
+            mActionMode = null;
+        }
+    };
 
     @Nullable
     @Override
@@ -29,7 +105,7 @@ public final class WallpaperListFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_wallpaper_list, container, false);
 
         StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
-        mAdapter = new WallpaperListAdapter();
+        mAdapter = new WallpaperListAdapter(this);
 
         RecyclerView recyclerView = (RecyclerView) root.findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(layoutManager);
@@ -46,31 +122,47 @@ public final class WallpaperListFragment extends Fragment {
         mAdapter.clear();
     }
 
-    public boolean onBackPressed() {
+    @Override
+    public void onItemClick(@NonNull View itemView, int position) {
+        Log.d("[%d] onItemClick", position);
         if (mAdapter.isSelectionMode()) {
-            mAdapter.setSelectionMode(false);
-            return true;
+            mAdapter.setSelection(position);
+            if (mActionMode != null) {
+                mActionMode.setTitle(String.valueOf(mAdapter.getSelectedItems().size()));
+            }
         } else {
-            return false;
+            mAdapter.setMarked(getActivity(), position);
         }
     }
 
-    public interface OnEventListener {
-        void onItemClick(@NonNull View itemView, int position);
+    @Override
+    public boolean onItemLongClick(@NonNull View itemView, int position) {
+        Log.d("[%d] onItemLongClick", position);
+        mAdapter.setSelectionMode(true);
+        mAdapter.setSelection(position);
+        mActionMode = getActivity().startActionMode(mCallback);
+        if (mActionMode != null) {
+            mActionMode.setTitle(String.valueOf(mAdapter.getSelectedItems().size()));
+        }
 
-        boolean onItemLongClick(@NonNull View itemView, int position);
+        return false;
     }
 
-    private static final class WallpaperListAdapter extends RecyclerView.Adapter implements WallpaperModel.OnEventListener, OnEventListener {
+    private static final class WallpaperListAdapter extends RecyclerView.Adapter implements WallpaperModel.OnEventListener {
 
         @NonNull
         private final List<WallpaperModel> mModels;
         private final List<WallpaperModel> mSelectedModels = new ArrayList<>();
+
+        @Nullable
+        private final OnItemEventListener mListener;
+
         @Nullable
         private WallpaperModel mMarkedModel;
         private boolean mSelectionMode = false;
 
-        public WallpaperListAdapter() {
+        public WallpaperListAdapter(@Nullable OnItemEventListener listener) {
+            mListener = listener;
             mModels = WallpaperModel.getModels();
             WallpaperModel.addEventListener(this);
         }
@@ -82,7 +174,7 @@ public final class WallpaperListFragment extends Fragment {
 
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            return new WallpaperViewHolder(LayoutInflater.from(parent.getContext()), parent, this);
+            return new WallpaperViewHolder(LayoutInflater.from(parent.getContext()), parent, mListener);
         }
 
         @Override
@@ -110,6 +202,7 @@ public final class WallpaperListFragment extends Fragment {
 
         @Override
         public void onRemoved(@NonNull WallpaperModel model) {
+            mSelectedModels.remove(model);
             int position = mModels.indexOf(model);
             if (position >= 0) {
                 mModels.remove(model);
@@ -130,29 +223,6 @@ public final class WallpaperListFragment extends Fragment {
             mMarkedModel = model;
         }
 
-        @Override
-        public void onItemClick(@NonNull View itemView, int position) {
-            Log.d("[%d] onItemClick", position);
-            WallpaperModel model = mModels.get(position);
-            if (mSelectionMode) {
-                if (!mSelectedModels.remove(model)) {
-                    mSelectedModels.add(model);
-                }
-                notifyItemChanged(position);
-            } else {
-                if (mMarkedModel != model) {
-                    model.setAsWallpaper(itemView.getContext());
-                }
-            }
-        }
-
-        @Override
-        public boolean onItemLongClick(@NonNull View itemView, int position) {
-            Log.d("[%d] onItemLongClick", position);
-            setSelectionMode(true);
-            return false;
-        }
-
         public boolean isSelectionMode() {
             return mSelectionMode;
         }
@@ -165,12 +235,40 @@ public final class WallpaperListFragment extends Fragment {
             }
         }
 
+        public void setMarked(@NonNull Context context, int position) {
+            WallpaperModel model = mModels.get(position);
+            if (mMarkedModel != model) {
+                model.setAsWallpaper(context);
+                mMarkedModel = model;
+            }
+        }
+
+        public void setSelection(int position) {
+            WallpaperModel model = mModels.get(position);
+            if (!mSelectedModels.remove(model)) {
+                mSelectedModels.add(model);
+            }
+
+            notifyDataSetChanged();
+        }
+
+        @NonNull
+        public List<WallpaperModel> getSelectedItems() {
+            return mSelectedModels;
+        }
+
+        public void remove(List<WallpaperModel> models) {
+            for (WallpaperModel model : models) {
+                WallpaperModel.removeModel(model);
+            }
+        }
+
         private static final class WallpaperViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
 
             @Nullable
-            private final OnEventListener mListener;
+            private final OnItemEventListener mListener;
 
-            private WallpaperViewHolder(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent, @Nullable OnEventListener listener) {
+            private WallpaperViewHolder(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent, @Nullable OnItemEventListener listener) {
                 super(inflater.inflate(R.layout.wallpaper_list_item, parent, false));
                 mListener = listener;
                 itemView.setTag(R.id.image_view, itemView.findViewById(R.id.image_view));
