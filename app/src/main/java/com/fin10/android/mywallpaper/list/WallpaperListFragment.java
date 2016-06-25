@@ -25,7 +25,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.R;
-import com.fin10.android.mywallpaper.WallpaperModel;
+import com.fin10.android.mywallpaper.model.WallpaperModel;
 import com.fin10.android.mywallpaper.widget.GridSpacingItemDecoration;
 
 import java.util.ArrayList;

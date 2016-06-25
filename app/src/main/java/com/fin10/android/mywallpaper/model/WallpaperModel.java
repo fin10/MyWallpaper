@@ -1,4 +1,4 @@
-package com.fin10.android.mywallpaper;
+package com.fin10.android.mywallpaper.model;
 
 import android.app.AlarmManager;
 import android.app.Service;
@@ -21,6 +21,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.fin10.android.mywallpaper.Log;
 
 import java.io.File;
 import java.io.FileInputStream;

@@ -1,5 +1,6 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.fin10.android.mywallpaper">
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.fin10.android.mywallpaper">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
@@ -23,6 +24,12 @@
         </activity>
 
         <activity
+            android:name=".settings.SettingsActivity"
+            android:exported="false"
+            android:label="@string/settings"
+            />
+
+        <activity
             android:name=".PutWallpaperActivity"
             android:theme="@style/TransparentAppTheme"
             >
@@ -34,16 +41,15 @@
                 <data android:mimeType="image/png" />
                 <data android:mimeType="text/plain" />
             </intent-filter>
-
         </activity>
 
         <service
-            android:name=".WallpaperModel$DownloadService"
+            android:name=".model.WallpaperModel$DownloadService"
             android:exported="false"
             />
 
         <receiver
-            android:name=".WallpaperModel$AlarmReceiver"
+            android:name=".model.WallpaperModel$AlarmReceiver"
             android:exported="false"
             />
 

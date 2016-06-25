@@ -8,6 +8,8 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 
+import com.fin10.android.mywallpaper.model.WallpaperModel;
+
 public final class PutWallpaperActivity extends AppCompatActivity {
 
     @Override

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     >
@@ -9,7 +10,7 @@
         android:id="@+id/image_view"
         android:layout_width="match_parent"
         android:layout_height="320dp"
-        />
+        tools:ignore="ContentDescription"/>
 
     <TextView
         android:id="@+id/description_view"
@@ -34,15 +35,13 @@
 
     <ImageView
         android:id="@+id/marker_view"
-        android:layout_width="wrap_content"
+        android:layout_width="24dp"
         android:layout_height="24dp"
         android:layout_alignParentEnd="true"
-        android:layout_marginEnd="4dp"
-        android:adjustViewBounds="true"
-        android:alpha="0.8"
-        android:elevation="4dp"
-        android:src="@mipmap/ic_marker"
-        />
+        android:alpha="0.9"
+        android:src="@mipmap/ic_bookmark_black_48dp"
+        android:tint="@color/colorAccent"
+        tools:ignore="ContentDescription"/>
 
     <View
         android:id="@+id/click_view"
