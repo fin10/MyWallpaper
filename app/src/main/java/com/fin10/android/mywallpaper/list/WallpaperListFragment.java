@@ -138,11 +138,13 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
     @Override
     public boolean onItemLongClick(@NonNull View itemView, int position) {
         Log.d("[%d] onItemLongClick", position);
-        mAdapter.setSelectionMode(true);
-        mAdapter.setSelection(position);
-        mActionMode = getActivity().startActionMode(mCallback);
-        if (mActionMode != null) {
-            mActionMode.setTitle(String.valueOf(mAdapter.getSelectedItems().size()));
+        if (!mAdapter.isSelectionMode()) {
+            mAdapter.setSelectionMode(true);
+            mAdapter.setSelection(position);
+            mActionMode = getActivity().startActionMode(mCallback);
+            if (mActionMode != null) {
+                mActionMode.setTitle(String.valueOf(mAdapter.getSelectedItems().size()));
+            }
         }
 
         return false;
