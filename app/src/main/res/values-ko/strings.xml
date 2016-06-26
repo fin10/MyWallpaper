@@ -9,4 +9,8 @@
     <string name="wallpaper">배경화면</string>
     <string name="frequently">자주</string>
     <string name="sometimes">가끔</string>
+    <string name="wallpaper_is_changed">배경화면이 변경 되었습니다.</string>
+    <string name="close">닫기</string>
+    <string name="auto_change">자동 변경</string>
+    <string name="change_wallpaper_automatically">배경화면이 자동으로 변경 됩니다</string>
 </resources>

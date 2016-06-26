@@ -1,27 +1,20 @@
 package com.fin10.android.mywallpaper.model;
 
 import android.app.AlarmManager;
-import android.app.Service;
+import android.app.PendingIntent;
 import android.app.WallpaperManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Handler;
-import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.request.animation.GlideAnimation;
-import com.bumptech.glide.request.target.SimpleTarget;
 import com.fin10.android.mywallpaper.Log;
+import com.fin10.android.mywallpaper.settings.SettingsFragment;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,6 +24,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 public final class WallpaperModel {
 
@@ -69,6 +63,10 @@ public final class WallpaperModel {
         return TextUtils.equals(path, model.getPath());
     }
 
+    private static int getCount() {
+        return getModels().size();
+    }
+
     @NonNull
     public static List<WallpaperModel> getModels() {
         List<WallpaperModel> models = new ArrayList<>();
@@ -81,13 +79,34 @@ public final class WallpaperModel {
         return models;
     }
 
-    private static void addModel(@NonNull String path) {
-        Log.d("path:%s", path);
-        WallpaperModel model = new WallpaperModel(path);
+    static void addModel(@NonNull Context context, @NonNull Bitmap bitmap) {
+        FileOutputStream os = null;
+        try {
+            File file = new File(sPath, System.currentTimeMillis() + ".png");
+            Log.d("file:%s", file);
+            os = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, os);
+            os.flush();
 
-        synchronized (sListeners) {
-            for (OnEventListener listener : sListeners) {
-                listener.onAdded(model);
+            int count = getCount();
+            if (count == 2 && SettingsFragment.isAutoChangeEnabled(context)) {
+                AlarmReceiver.start(context);
+            }
+
+            WallpaperModel model = new WallpaperModel(file.getAbsolutePath());
+            synchronized (sListeners) {
+                for (OnEventListener listener : sListeners) {
+                    listener.onAdded(model);
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (os != null) os.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -167,90 +186,50 @@ public final class WallpaperModel {
         void onWallpaperChanged(@NonNull WallpaperModel model);
     }
 
-    public static final class DownloadService extends Service {
-
-        public static void putWallpaper(@NonNull Context context, @NonNull Uri uri) {
-            Intent i = new Intent(context, WallpaperModel.DownloadService.class);
-            i.putExtra("uri", uri);
-            context.startService(i);
-        }
-
-        @Override
-        public void onCreate() {
-            super.onCreate();
-        }
-
-        @Nullable
-        @Override
-        public IBinder onBind(Intent intent) {
-            return null;
-        }
-
-        @Override
-        public int onStartCommand(Intent intent, int flags, int startId) {
-            if (intent == null) {
-                Log.e("[%d] the intent is null.", startId);
-                return Service.START_NOT_STICKY;
-            }
-
-            Uri uri = intent.getParcelableExtra("uri");
-            Log.d("uri:%s", uri);
-            if (uri == null) {
-                Log.e("[%d] the intent has no uri.", startId);
-                return Service.START_NOT_STICKY;
-            }
-
-            Glide.with(this)
-                    .load(uri)
-                    .asBitmap()
-                    .diskCacheStrategy(DiskCacheStrategy.SOURCE)
-                    .into(new SimpleTarget<Bitmap>() {
-
-                        @Override
-                        public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
-                            FileOutputStream os = null;
-                            try {
-                                File file = new File(sPath, System.currentTimeMillis() + ".png");
-                                Log.d("file:%s", file);
-                                os = new FileOutputStream(file);
-                                resource.compress(Bitmap.CompressFormat.PNG, 100, os);
-                                os.flush();
-
-                                WallpaperModel.addModel(file.getAbsolutePath());
-
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } finally {
-                                try {
-                                    if (os != null) os.close();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }
-
-                        @Override
-                        public void onLoadFailed(Exception e, Drawable errorDrawable) {
-                            super.onLoadFailed(e, errorDrawable);
-                            e.printStackTrace();
-                        }
-                    });
-
-            return Service.START_NOT_STICKY;
-        }
-
-        @Override
-        public void onDestroy() {
-            super.onDestroy();
-        }
-    }
-
     public static final class AlarmReceiver extends BroadcastReceiver {
+
+        public static void start(@NonNull Context context) {
+            long interval = SettingsFragment.getInterval(context);
+            Log.d("interval:%d", interval);
+            int count = WallpaperModel.getCount();
+            if (count <= 1) {
+                Log.d("not need to repeat. size:%d", count);
+                return;
+            }
+
+            AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + interval, interval, createOperation(context));
+        }
+
+        public static void stop(@NonNull Context context) {
+            AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            am.cancel(createOperation(context));
+        }
+
+        @NonNull
+        private static PendingIntent createOperation(@NonNull Context context) {
+            Intent intent = new Intent(context, AlarmReceiver.class);
+            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+        }
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            String action = intent.getAction();
+            Log.d("action:%s", action);
+            if (Intent.ACTION_BOOT_COMPLETED.equals(action)) {
+                start(context);
+            } else {
+                List<WallpaperModel> models = WallpaperModel.getModels();
+                Random random = new Random();
+                int count = models.size();
+                while (count > 1) {
+                    WallpaperModel model = models.get(random.nextInt(count));
+                    if (!WallpaperModel.isCurrentWallpaper(context, model)) {
+                        model.setAsWallpaper(context);
+                        break;
+                    }
+                }
+            }
         }
     }
-
 }

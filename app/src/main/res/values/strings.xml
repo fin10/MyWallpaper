@@ -10,4 +10,6 @@
     <string name="usually">Usually</string>
     <string name="frequently">Frequently</string>
     <string name="change_wallpaper_automatically">Change wallpaper automatically</string>
+    <string name="wallpaper_is_changed">Wallpaper is changed.</string>
+    <string name="close">Close</string>
 </resources>

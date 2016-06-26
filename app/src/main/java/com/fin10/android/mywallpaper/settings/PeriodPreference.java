@@ -12,18 +12,26 @@ public final class PeriodPreference extends Preference implements SeekBar.OnSeek
 
     public PeriodPreference(Context context) {
         super(context);
+        init();
     }
 
     public PeriodPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
+        init();
     }
 
     public PeriodPreference(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        init();
     }
 
     public PeriodPreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+        init();
+    }
+
+    private void init() {
+        setLayoutResource(R.layout.preference_auto_change_period);
     }
 
     @Override
@@ -45,5 +53,11 @@ public final class PeriodPreference extends Preference implements SeekBar.OnSeek
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
+    }
+
+    public interface Period {
+        int SOMETIMES = 0;
+        int USUALLY = 1;
+        int FREQUENTLY = 2;
     }
 }
