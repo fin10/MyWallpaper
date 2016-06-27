@@ -3,38 +3,66 @@ package com.fin10.android.mywallpaper.model;
 import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.XmlResourceParser;
 import android.graphics.Bitmap;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.fin10.android.mywallpaper.Log;
+import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.settings.SettingsFragment;
+import com.raizlabs.android.dbflow.annotation.Column;
+import com.raizlabs.android.dbflow.annotation.PrimaryKey;
+import com.raizlabs.android.dbflow.annotation.Table;
+import com.raizlabs.android.dbflow.annotation.Unique;
+import com.raizlabs.android.dbflow.config.FlowConfig;
+import com.raizlabs.android.dbflow.config.FlowManager;
+import com.raizlabs.android.dbflow.sql.language.SQLite;
+import com.raizlabs.android.dbflow.structure.BaseModel;
+
+import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public final class WallpaperModel {
+@Table(database = WallpaperDatabase.class)
+public final class WallpaperModel extends BaseModel {
 
     private static final List<OnEventListener> sListeners = new LinkedList<>();
-    private static String sPath;
-    private final String mPath;
+    private static String ROOT_PATH;
 
-    private WallpaperModel(@NonNull String path) {
-        mPath = path;
-    }
+    @PrimaryKey
+    long mId;
+
+    @Column(defaultValue = "\"device\"")
+    String mUserId;
+
+    @Column
+    @Unique
+    String mImagePath;
 
     public static void init(@NonNull Context context) {
-        sPath = context.getFilesDir() + "/wallpapers/";
-        File file = new File(sPath);
-        if (!file.exists()) file.mkdir();
+        FlowManager.init(new FlowConfig.Builder(context).build());
+        XmlResourceParser parser = context.getResources().getXml(R.xml.filepaths);
+        try {
+            for (; !TextUtils.equals(parser.getName(), "files-path"); parser.next()) ;
+            String path = parser.getAttributeValue(null, "path");
+            ROOT_PATH = context.getFilesDir() + "/" + path;
+            File file = new File(ROOT_PATH);
+            if (!file.exists()) file.mkdir();
+        } catch (XmlPullParserException | IOException e) {
+            e.printStackTrace();
+        } finally {
+            parser.close();
+        }
     }
 
     public static void addEventListener(@NonNull OnEventListener listener) {
@@ -53,42 +81,43 @@ public final class WallpaperModel {
 
     public static boolean isCurrentWallpaper(@NonNull Context context, @NonNull WallpaperModel model) {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-        String path = pref.getString("current_wallpaper", "");
-
-        return TextUtils.equals(path, model.getPath());
+        long id = pref.getLong(context.getString(R.string.pref_key_current_wallpaper_id), -1);
+        return id == model.getId();
     }
 
-    static int getCount() {
-        return getModels().size();
+    static long getCount() {
+        return SQLite.select()
+                .from(WallpaperModel.class)
+                .count();
     }
 
-    @NonNull
+    @Nullable
     public static List<WallpaperModel> getModels() {
-        List<WallpaperModel> models = new ArrayList<>();
-        File file = new File(sPath);
-        File[] files = file.listFiles();
-        for (File f : files) {
-            models.add(new WallpaperModel(f.getAbsolutePath()));
-        }
-
-        return models;
+        return SQLite.select()
+                .from(WallpaperModel.class)
+                .queryList();
     }
 
     static boolean addModel(@NonNull Context context, @NonNull Bitmap bitmap) {
         FileOutputStream os = null;
         try {
-            File file = new File(sPath, System.currentTimeMillis() + ".png");
+            WallpaperModel model = new WallpaperModel();
+            model.mId = System.currentTimeMillis();
+
+            File file = new File(ROOT_PATH, model.mId + ".png");
             Log.d("file:%s", file);
             os = new FileOutputStream(file);
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, os);
             os.flush();
 
-            int count = getCount();
+            model.mImagePath = file.getAbsolutePath();
+            model.save();
+
+            long count = getCount();
             if (count == 2 && SettingsFragment.isAutoChangeEnabled(context)) {
                 WallpaperChangeScheduler.start(context);
             }
 
-            WallpaperModel model = new WallpaperModel(file.getAbsolutePath());
             synchronized (sListeners) {
                 for (OnEventListener listener : sListeners) {
                     listener.onAdded(model);
@@ -110,12 +139,14 @@ public final class WallpaperModel {
     }
 
     public static void removeModel(@NonNull final WallpaperModel model) {
-        File file = new File(model.getPath());
+        File file = new File(model.getImagePath());
         boolean result = file.delete();
         if (!result) {
-            Log.e("failed to delete. %s", model.getPath());
+            Log.e("failed to delete. %s", model.getImagePath());
             return;
         }
+
+        model.delete();
 
         Handler handler = new Handler();
         synchronized (sListeners) {
@@ -123,25 +154,34 @@ public final class WallpaperModel {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        listener.onRemoved(model);
+                        listener.onRemoved(model.getId());
                     }
                 });
             }
         }
     }
 
+    public long getId() {
+        return mId;
+    }
+
+    @NonNull
+    public String getImagePath() {
+        return mImagePath;
+    }
+
     public void setAsWallpaper(@NonNull Context context) {
         InputStream is = null;
         try {
-            is = new FileInputStream(mPath);
+            is = new FileInputStream(mImagePath);
             WallpaperManager.getInstance(context).setStream(is);
 
             SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-            pref.edit().putString("current_wallpaper", mPath).apply();
+            pref.edit().putLong(context.getString(R.string.pref_key_current_wallpaper_id), mId).apply();
 
             synchronized (sListeners) {
                 for (OnEventListener listener : sListeners) {
-                    listener.onWallpaperChanged(this);
+                    listener.onWallpaperChanged(mId);
                 }
             }
         } catch (IOException e) {
@@ -155,11 +195,6 @@ public final class WallpaperModel {
         }
     }
 
-    @NonNull
-    public String getPath() {
-        return mPath;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -167,20 +202,20 @@ public final class WallpaperModel {
 
         WallpaperModel model = (WallpaperModel) o;
 
-        return mPath.equals(model.mPath);
+        return mId == model.mId;
 
     }
 
     @Override
     public int hashCode() {
-        return mPath.hashCode();
+        return (int) (mId ^ (mId >>> 32));
     }
 
     public interface OnEventListener {
         void onAdded(@NonNull WallpaperModel model);
 
-        void onRemoved(@NonNull WallpaperModel model);
+        void onRemoved(long id);
 
-        void onWallpaperChanged(@NonNull WallpaperModel model);
+        void onWallpaperChanged(long id);
     }
 }

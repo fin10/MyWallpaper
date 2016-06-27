@@ -18,7 +18,7 @@ public final class WallpaperChangeScheduler extends BroadcastReceiver {
     public static void start(@NonNull Context context) {
         long interval = SettingsFragment.getInterval(context);
         Log.d("interval:%d", interval);
-        int count = WallpaperModel.getCount();
+        long count = WallpaperModel.getCount();
         if (count <= 1) {
             Log.d("not need to repeat. size:%d", count);
             return;

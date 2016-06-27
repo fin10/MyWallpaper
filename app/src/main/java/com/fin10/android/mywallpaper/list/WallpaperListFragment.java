@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
@@ -20,14 +21,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.fin10.android.mywallpaper.Constants;
 import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
 import com.fin10.android.mywallpaper.widget.GridSpacingItemDecoration;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,7 +58,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                     List<WallpaperModel> items = mAdapter.getSelectedItems();
                     ArrayList<Uri> imageUris = new ArrayList<>();
                     for (WallpaperModel item : items) {
-                        imageUris.add(Uri.parse(item.getPath()));
+                        imageUris.add(FileProvider.getUriForFile(getActivity(), Constants.FileProvider.AUTHORITY, new File(item.getImagePath())));
                     }
 
                     Intent shareIntent = new Intent();
@@ -156,7 +158,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         private final List<WallpaperModel> mSelectedModels = new ArrayList<>();
         private final OnItemEventListener mListener;
 
-        private WallpaperModel mMarkedModel;
+        private long mMarkedModelId = -1;
         private boolean mSelectionMode = false;
 
         public WallpaperListAdapter(@Nullable OnItemEventListener listener) {
@@ -166,7 +168,6 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         }
 
         public void clear() {
-            mModels.clear();
             WallpaperModel.removeEventListener(this);
         }
 
@@ -179,7 +180,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             WallpaperModel model = mModels.get(position);
             boolean marked = WallpaperModel.isCurrentWallpaper(holder.itemView.getContext(), model);
-            if (marked) mMarkedModel = model;
+            if (marked) mMarkedModelId = model.getId();
             if (mSelectionMode) {
                 ((WallpaperViewHolder) holder).setModel(model, marked, mSelectedModels.contains(model));
             } else {
@@ -199,26 +200,48 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         }
 
         @Override
-        public void onRemoved(@NonNull WallpaperModel model) {
-            mSelectedModels.remove(model);
-            int position = mModels.indexOf(model);
-            if (position >= 0) {
-                mModels.remove(model);
-                notifyItemRemoved(position);
+        public void onRemoved(long id) {
+            for (WallpaperModel model : mSelectedModels) {
+                if (model.getId() == id) {
+                    mSelectedModels.remove(model);
+                    break;
+                }
+            }
+
+            int position = 0;
+            for (WallpaperModel model : mModels) {
+                if (model.getId() == id) {
+                    mModels.remove(model);
+                    notifyItemRemoved(position);
+                    break;
+                }
+                ++position;
             }
         }
 
         @Override
-        public void onWallpaperChanged(@NonNull WallpaperModel model) {
-            int position = mModels.indexOf(model);
-            if (position >= 0) notifyItemChanged(position);
-
-            if (mMarkedModel != null) {
-                position = mModels.indexOf(mMarkedModel);
-                if (position >= 0) notifyItemChanged(position);
+        public void onWallpaperChanged(long id) {
+            if (mMarkedModelId > 0) {
+                int position = 0;
+                for (WallpaperModel model : mModels) {
+                    if (model.getId() == mMarkedModelId) {
+                        notifyItemChanged(position);
+                        break;
+                    }
+                    ++position;
+                }
             }
 
-            mMarkedModel = model;
+            int position = 0;
+            for (WallpaperModel model : mModels) {
+                if (model.getId() == id) {
+                    notifyItemChanged(position);
+                    break;
+                }
+                ++position;
+            }
+
+            mMarkedModelId = position;
         }
 
         public boolean isSelectionMode() {
@@ -235,9 +258,9 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
         public void setMarked(@NonNull Context context, int position) {
             WallpaperModel model = mModels.get(position);
-            if (mMarkedModel != model) {
+            if (mMarkedModelId != model.getId()) {
                 model.setAsWallpaper(context);
-                mMarkedModel = model;
+                mMarkedModelId = model.getId();
             }
         }
 
@@ -271,7 +294,6 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                 itemView.setTag(R.id.image_view, itemView.findViewById(R.id.image_view));
                 itemView.setTag(R.id.marker_view, itemView.findViewById(R.id.marker_view));
                 itemView.setTag(R.id.check_box, itemView.findViewById(R.id.check_box));
-                itemView.setTag(R.id.description_view, itemView.findViewById(R.id.description_view));
 
                 View clickView = itemView.findViewById(R.id.click_view);
                 clickView.setOnClickListener(this);
@@ -285,10 +307,10 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
             public void setModel(WallpaperModel model, boolean marked, boolean selected) {
                 int position = getAdapterPosition();
-                Log.d("[%d] %s", position, model.getPath());
+                Log.d("[%d] %d", position, model.getId());
 
                 Glide.with(itemView.getContext())
-                        .load(model.getPath())
+                        .load(model.getImagePath())
                         .centerCrop()
                         .into((ImageView) itemView.getTag(R.id.image_view));
 
@@ -298,9 +320,6 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                 CheckBox checkBox = (CheckBox) itemView.getTag(R.id.check_box);
                 checkBox.setVisibility(View.VISIBLE);
                 checkBox.setChecked(selected);
-
-                TextView textView = (TextView) itemView.getTag(R.id.description_view);
-                textView.setText(model.getPath());
             }
 
             @Override

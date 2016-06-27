@@ -40,25 +40,30 @@ public final class DownloadWallpaperActivity extends AppCompatActivity {
             }
 
             Log.d("%s:%s", type, clipData);
-            if (Intent.ACTION_SEND.equals(action)) {
+            if (Intent.ACTION_SEND.equals(action) || Intent.ACTION_SEND_MULTIPLE.equals(action)) {
+                int count = clipData.getItemCount();
                 if ("text/plain".equals(type)) {
-                    String uri = String.valueOf(clipData.getItemAt(0).getText());
-                    if (uri.contains(" ")) {
-                        String[] texts = uri.split("\\s|\\n");
-                        Log.d(Arrays.toString(texts));
-                        String regex = "\\b(http?)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
-                        Pattern pattern = Pattern.compile(regex);
-                        for (String text : texts) {
-                            if (pattern.matcher(text).matches()) {
-                                uri = text;
-                                break;
+                    for (int i = 0; i < count; ++i) {
+                        String uri = String.valueOf(clipData.getItemAt(i).getText());
+                        if (uri.contains(" ")) {
+                            String[] texts = uri.split("\\s|\\n");
+                            Log.d(Arrays.toString(texts));
+                            String regex = "\\b(http?)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
+                            Pattern pattern = Pattern.compile(regex);
+                            for (String text : texts) {
+                                if (pattern.matcher(text).matches()) {
+                                    uri = text;
+                                    break;
+                                }
                             }
                         }
-                    }
 
-                    DownloadService.download(this, Uri.parse(uri));
+                        DownloadService.download(this, Uri.parse(uri));
+                    }
                 } else if (type.startsWith("image/")) {
-                    DownloadService.download(this, clipData.getItemAt(0).getUri());
+                    for (int i = 0; i < count; ++i) {
+                        DownloadService.download(this, clipData.getItemAt(i).getUri());
+                    }
                 }
             }
         } finally {

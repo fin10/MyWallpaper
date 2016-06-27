@@ -65,11 +65,11 @@ public final class MainActivity extends AppCompatActivity implements WallpaperMo
     }
 
     @Override
-    public void onRemoved(@NonNull WallpaperModel model) {
+    public void onRemoved(long id) {
     }
 
     @Override
-    public void onWallpaperChanged(@NonNull WallpaperModel model) {
+    public void onWallpaperChanged(long id) {
         if (!mSnackBar.isShown()) {
             mSnackBar.show();
         }

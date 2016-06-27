@@ -22,7 +22,7 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
     }
 
     public static long getInterval(@NonNull Context context) {
-        long interval = 24 * 60 * 60 * 1000;
+        long interval = AlarmManager.INTERVAL_DAY;
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
         int period = pref.getInt(context.getString(R.string.pref_key_auto_change_period), PeriodPreference.Period.USUALLY);
         switch (period) {
@@ -33,7 +33,7 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
                 interval = AlarmManager.INTERVAL_DAY;
                 break;
             case PeriodPreference.Period.FREQUENTLY:
-                interval = AlarmManager.INTERVAL_HALF_DAY;
+                interval = 3 * AlarmManager.INTERVAL_HOUR;
                 break;
         }
 
