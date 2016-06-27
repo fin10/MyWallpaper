@@ -126,7 +126,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
     public void onItemClick(@NonNull View itemView, int position) {
         Log.d("[%d] onItemClick", position);
         if (mAdapter.isSelectionMode()) {
-            mAdapter.setSelection(position);
+            mAdapter.setSelected(position);
             if (mActionMode != null) {
                 mActionMode.setTitle(String.valueOf(mAdapter.getSelectedItems().size()));
             }
@@ -140,7 +140,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         Log.d("[%d] onItemLongClick", position);
         if (!mAdapter.isSelectionMode()) {
             mAdapter.setSelectionMode(true);
-            mAdapter.setSelection(position);
+            mAdapter.setSelected(position);
             mActionMode = getActivity().startActionMode(mCallback);
             if (mActionMode != null) {
                 mActionMode.setTitle(String.valueOf(mAdapter.getSelectedItems().size()));
@@ -241,7 +241,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
             }
         }
 
-        public void setSelection(int position) {
+        public void setSelected(int position) {
             WallpaperModel model = mModels.get(position);
             if (!mSelectedModels.remove(model)) {
                 mSelectedModels.add(model);
@@ -265,7 +265,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
             private final OnItemEventListener mListener;
 
-            public WallpaperViewHolder(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent, @Nullable OnItemEventListener listener) {
+            private WallpaperViewHolder(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent, @Nullable OnItemEventListener listener) {
                 super(inflater.inflate(R.layout.wallpaper_list_item, parent, false));
                 mListener = listener;
                 itemView.setTag(R.id.image_view, itemView.findViewById(R.id.image_view));

@@ -8,8 +8,6 @@ import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.TypedValue;
 import android.view.View;
 
-import com.fin10.android.mywallpaper.Log;
-
 public final class GridSpacingItemDecoration extends RecyclerView.ItemDecoration {
 
     private final int mSpanCount;
@@ -26,20 +24,18 @@ public final class GridSpacingItemDecoration extends RecyclerView.ItemDecoration
 
     @Override
     public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
-        StaggeredGridLayoutManager.LayoutParams params = (StaggeredGridLayoutManager.LayoutParams) view.getLayoutParams();
-        int index = params.getSpanIndex();
-        int position = params.getViewAdapterPosition();
-        Log.d("spanIdx:%d, adapter_pos:%d, layout_pos:%d", index, position, parent.getChildLayoutPosition(view));
-
         int left = mSpacing;
         int right = mSpacing;
         int top = 0;
         int bottom = mSpacing;
 
+        StaggeredGridLayoutManager.LayoutParams params = (StaggeredGridLayoutManager.LayoutParams) view.getLayoutParams();
+        int index = params.getSpanIndex();
         if (index == 0) {
             right = 0;
         }
 
+        int position = params.getViewAdapterPosition();
         if (position < mSpanCount) {
             top = mSpacing;
         }

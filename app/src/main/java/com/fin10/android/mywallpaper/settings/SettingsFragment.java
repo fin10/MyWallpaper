@@ -4,14 +4,17 @@ import android.app.AlarmManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
+import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.R;
-import com.fin10.android.mywallpaper.model.WallpaperModel;
+import com.fin10.android.mywallpaper.model.WallpaperChangeScheduler;
 
-public final class SettingsFragment extends PreferenceFragment {
+public final class SettingsFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener {
 
     public static boolean isAutoChangeEnabled(@NonNull Context context) {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
@@ -42,18 +45,26 @@ public final class SettingsFragment extends PreferenceFragment {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.settings);
         PreferenceManager.setDefaultValues(getActivity(), R.xml.settings, false);
+
+        Preference autoChangeEnabled = findPreference(getString(R.string.pref_key_auto_change_enabled));
+        autoChangeEnabled.setOnPreferenceChangeListener(this);
+
+        Preference autoChangePeriod = findPreference(getString(R.string.pref_key_auto_change_period));
+        autoChangePeriod.setOnPreferenceChangeListener(this);
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Context context = getActivity();
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-        boolean autoChangeEnabled = pref.getBoolean(getString(R.string.pref_key_auto_change_enabled), false);
-        if (autoChangeEnabled) {
-            WallpaperModel.AlarmReceiver.start(context);
-        } else {
-            WallpaperModel.AlarmReceiver.stop(context);
+    public boolean onPreferenceChange(Preference preference, Object newValue) {
+        Log.d("%s, newValue:%s", preference, newValue);
+        String key = preference.getKey();
+        if (TextUtils.equals(key, getString(R.string.pref_key_auto_change_enabled))) {
+            boolean value = (boolean) newValue;
+            if (value) WallpaperChangeScheduler.start(getActivity());
+            else WallpaperChangeScheduler.stop(getActivity());
+        } else if (TextUtils.equals(key, getString(R.string.pref_key_auto_change_period))) {
+            WallpaperChangeScheduler.start(getActivity());
         }
+
+        return true;
     }
 }

@@ -32,6 +32,7 @@
 
         <activity
             android:name=".model.DownloadWallpaperActivity"
+            android:exported="false"
             android:theme="@style/TransparentAppTheme"
             >
 
@@ -50,7 +51,7 @@
             />
 
         <receiver
-            android:name=".model.WallpaperModel$AlarmReceiver"
+            android:name=".model.WallpaperChangeScheduler"
             android:exported="false"
             >
 

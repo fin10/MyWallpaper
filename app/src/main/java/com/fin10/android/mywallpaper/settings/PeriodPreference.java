@@ -45,6 +45,7 @@ public final class PeriodPreference extends Preference implements SeekBar.OnSeek
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
         persistInt(progress);
+        callChangeListener(progress);
     }
 
     @Override
