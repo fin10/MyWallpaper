@@ -79,7 +79,7 @@ public final class WallpaperModel {
         return models;
     }
 
-    static void addModel(@NonNull Context context, @NonNull Bitmap bitmap) {
+    static boolean addModel(@NonNull Context context, @NonNull Bitmap bitmap) {
         FileOutputStream os = null;
         try {
             File file = new File(sPath, System.currentTimeMillis() + ".png");
@@ -100,6 +100,8 @@ public final class WallpaperModel {
                 }
             }
 
+            return true;
+
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -109,6 +111,7 @@ public final class WallpaperModel {
                 e.printStackTrace();
             }
         }
+        return false;
     }
 
     public static void removeModel(@NonNull final WallpaperModel model) {

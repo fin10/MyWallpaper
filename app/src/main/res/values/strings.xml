@@ -12,4 +12,6 @@
     <string name="change_wallpaper_automatically">Change wallpaper automatically</string>
     <string name="wallpaper_is_changed">Wallpaper is changed.</string>
     <string name="close">Close</string>
+    <string name="new_wallpaper_is_added">New wallpaper is added.</string>
+    <string name="failed_to_add_wallpaper">Failed to add wallpaper.</string>
 </resources>

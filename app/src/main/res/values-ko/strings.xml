@@ -3,7 +3,7 @@
     <string name="app_name">My Wallpaper</string>
     <string name="delete">삭제</string>
     <string name="share">공유</string>
-    <string name="do_you_want_to_delete">선택된 배경화면을 삭제하시겠습니까?</string>
+    <string name="do_you_want_to_delete">선택된 배경화면을 삭제 하시겠습니까?</string>
     <string name="settings">설정</string>
     <string name="usually">보통</string>
     <string name="wallpaper">배경화면</string>
@@ -13,4 +13,6 @@
     <string name="close">닫기</string>
     <string name="auto_change">자동 변경</string>
     <string name="change_wallpaper_automatically">배경화면이 자동으로 변경 됩니다</string>
+    <string name="new_wallpaper_is_added">새로운 배경화면이 추가 되었습니다.</string>
+    <string name="failed_to_add_wallpaper">배경화면 추가가 실패 하였습니다.</string>
 </resources>

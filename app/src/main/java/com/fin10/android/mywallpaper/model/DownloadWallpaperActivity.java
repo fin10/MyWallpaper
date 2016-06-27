@@ -13,12 +13,17 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.fin10.android.mywallpaper.Log;
+import com.fin10.android.mywallpaper.R;
+
+import java.util.Arrays;
+import java.util.regex.Pattern;
 
 public final class DownloadWallpaperActivity extends AppCompatActivity {
 
@@ -34,11 +39,26 @@ public final class DownloadWallpaperActivity extends AppCompatActivity {
                 return;
             }
 
+            Log.d("%s:%s", type, clipData);
             if (Intent.ACTION_SEND.equals(action)) {
                 if ("text/plain".equals(type)) {
-                    DownloadService.download(this, Uri.parse(clipData.getItemAt(0).getText().toString()));
+                    String uri = String.valueOf(clipData.getItemAt(0).getText());
+                    if (uri.contains(" ")) {
+                        String[] texts = uri.split("\\s|\\n");
+                        Log.d(Arrays.toString(texts));
+                        String regex = "\\b(http?)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
+                        Pattern pattern = Pattern.compile(regex);
+                        for (String text : texts) {
+                            if (pattern.matcher(text).matches()) {
+                                uri = text;
+                                break;
+                            }
+                        }
+                    }
+
+                    DownloadService.download(this, Uri.parse(uri));
                 } else if (type.startsWith("image/")) {
-                    DownloadService.download(this, Uri.parse(clipData.getItemAt(0).getUri().toString()));
+                    DownloadService.download(this, clipData.getItemAt(0).getUri());
                 }
             }
         } finally {
@@ -87,13 +107,16 @@ public final class DownloadWallpaperActivity extends AppCompatActivity {
 
                         @Override
                         public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
-                            WallpaperModel.addModel(getBaseContext(), resource);
+                            boolean result = WallpaperModel.addModel(getBaseContext(), resource);
+                            Toast.makeText(getBaseContext(),
+                                    result ? R.string.new_wallpaper_is_added : R.string.failed_to_add_wallpaper, Toast.LENGTH_SHORT).show();
                         }
 
                         @Override
                         public void onLoadFailed(Exception e, Drawable errorDrawable) {
                             super.onLoadFailed(e, errorDrawable);
-                            e.printStackTrace();
+                            if (e != null) e.printStackTrace();
+                            Toast.makeText(getBaseContext(), R.string.failed_to_add_wallpaper, Toast.LENGTH_LONG).show();
                         }
                     });
 
