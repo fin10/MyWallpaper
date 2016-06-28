@@ -33,8 +33,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class WallpaperListFragment extends Fragment implements OnItemEventListener {
+public final class WallpaperListFragment extends Fragment implements OnItemEventListener, View.OnClickListener {
 
+    private View mEmptyView;
     private WallpaperListAdapter mAdapter;
     private ActionMode mActionMode;
     private Dialog mDeleteDialog;
@@ -101,6 +102,19 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         }
     };
 
+    private RecyclerView.AdapterDataObserver mObserver = new RecyclerView.AdapterDataObserver() {
+
+        @Override
+        public void onItemRangeRemoved(int positionStart, int itemCount) {
+            int count = mAdapter.getItemCount();
+            if (count == 0) {
+                mEmptyView.setVisibility(View.VISIBLE);
+            } else if (mEmptyView.getVisibility() == View.VISIBLE) {
+                mEmptyView.setVisibility(View.GONE);
+            }
+        }
+    };
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -109,19 +123,39 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         mAdapter = new WallpaperListAdapter(this);
 
+        mEmptyView = root.findViewById(R.id.empty_view);
+        mEmptyView.setVisibility(mAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
+        View discoveryButton = mEmptyView.findViewById(R.id.discovery_button);
+        discoveryButton.setOnClickListener(this);
+
         RecyclerView recyclerView = (RecyclerView) root.findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(mAdapter);
         recyclerView.addItemDecoration(new GridSpacingItemDecoration(layoutManager.getSpanCount(),
                 GridSpacingItemDecoration.convertDpToPx(getResources(), 1)));
 
+        mAdapter.registerAdapterDataObserver(mObserver);
+
         return root;
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        int count = mAdapter.getItemCount();
+        if (count == 0) {
+            mEmptyView.setVisibility(View.VISIBLE);
+        } else if (mEmptyView.getVisibility() == View.VISIBLE) {
+            mEmptyView.setVisibility(View.GONE);
+        }
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         mAdapter.clear();
+        mAdapter.unregisterAdapterDataObserver(mObserver);
     }
 
     @Override
@@ -142,14 +176,20 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         Log.d("[%d] onItemLongClick", position);
         if (!mAdapter.isSelectionMode()) {
             mAdapter.setSelectionMode(true);
-            mAdapter.setSelected(position);
             mActionMode = getActivity().startActionMode(mCallback);
-            if (mActionMode != null) {
-                mActionMode.setTitle(String.valueOf(mAdapter.getSelectedItems().size()));
-            }
+            onItemClick(itemView, position);
         }
 
-        return false;
+        return true;
+    }
+
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.discovery_button:
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/search?q=wallpaper&tbm=isch")));
+                break;
+        }
     }
 
     private static final class WallpaperListAdapter extends RecyclerView.Adapter implements WallpaperModel.OnEventListener {
@@ -306,9 +346,6 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
             }
 
             public void setModel(WallpaperModel model, boolean marked, boolean selected) {
-                int position = getAdapterPosition();
-                Log.d("[%d] %d", position, model.getId());
-
                 Glide.with(itemView.getContext())
                         .load(model.getImagePath())
                         .centerCrop()

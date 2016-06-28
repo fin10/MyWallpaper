@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 
     <application
         android:name=".MainApplication"
@@ -37,18 +38,11 @@
             >
 
             <intent-filter>
-                <action android:name="android.intent.action.SEND_MULTIPLE"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-
-                <data android:mimeType="image/jpg"/>
-                <data android:mimeType="image/png"/>
-            </intent-filter>
-
-            <intent-filter>
                 <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND_MULTIPLE"/>
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="image/jpg" />
-                <data android:mimeType="image/png" />
+
+                <data android:mimeType="image/*"/>
                 <data android:mimeType="text/plain" />
             </intent-filter>
 

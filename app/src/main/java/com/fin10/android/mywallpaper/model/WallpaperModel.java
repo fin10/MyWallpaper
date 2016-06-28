@@ -17,7 +17,6 @@ import com.fin10.android.mywallpaper.settings.SettingsFragment;
 import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;
-import com.raizlabs.android.dbflow.annotation.Unique;
 import com.raizlabs.android.dbflow.config.FlowConfig;
 import com.raizlabs.android.dbflow.config.FlowManager;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
@@ -39,15 +38,24 @@ public final class WallpaperModel extends BaseModel {
     private static final List<OnEventListener> sListeners = new LinkedList<>();
     private static String ROOT_PATH;
 
-    @PrimaryKey
+    @Column(name = "_id", getterName = "getId")
+    @PrimaryKey(autoincrement = true)
     long mId;
 
-    @Column(defaultValue = "\"device\"")
+    @Column(name = "user_id", defaultValue = "\"device\"")
     String mUserId;
 
-    @Column
-    @Unique
+    @Column(name = "source")
+    String mSource;
+
+    @Column(name = "image_path", getterName = "getImagePath")
     String mImagePath;
+
+    @Column(name = "creation_time")
+    long mCreationTime;
+
+    @Column(name = "applied_count", defaultValue = "0")
+    long mAppliedCount;
 
     public static void init(@NonNull Context context) {
         FlowManager.init(new FlowConfig.Builder(context).build());
@@ -95,15 +103,18 @@ public final class WallpaperModel extends BaseModel {
     public static List<WallpaperModel> getModels() {
         return SQLite.select()
                 .from(WallpaperModel.class)
+                .orderBy(WallpaperModel_Table.creation_time, false)
                 .queryList();
     }
 
-    static boolean addModel(@NonNull Context context, @NonNull Bitmap bitmap) {
+    static boolean addModel(@NonNull Context context, @NonNull String source, @NonNull Bitmap bitmap) {
         FileOutputStream os = null;
-        try {
-            WallpaperModel model = new WallpaperModel();
-            model.mId = System.currentTimeMillis();
+        WallpaperModel model = new WallpaperModel();
+        model.mCreationTime = System.currentTimeMillis();
+        model.mSource = source;
+        model.insert();
 
+        try {
             File file = new File(ROOT_PATH, model.mId + ".png");
             Log.d("file:%s", file);
             os = new FileOutputStream(file);
@@ -111,7 +122,7 @@ public final class WallpaperModel extends BaseModel {
             os.flush();
 
             model.mImagePath = file.getAbsolutePath();
-            model.save();
+            model.update();
 
             long count = getCount();
             if (count == 2 && SettingsFragment.isAutoChangeEnabled(context)) {
@@ -128,6 +139,7 @@ public final class WallpaperModel extends BaseModel {
 
         } catch (IOException e) {
             e.printStackTrace();
+            model.delete();
         } finally {
             try {
                 if (os != null) os.close();
@@ -175,6 +187,8 @@ public final class WallpaperModel extends BaseModel {
         try {
             is = new FileInputStream(mImagePath);
             WallpaperManager.getInstance(context).setStream(is);
+            ++mAppliedCount;
+            update();
 
             SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
             pref.edit().putLong(context.getString(R.string.pref_key_current_wallpaper_id), mId).apply();

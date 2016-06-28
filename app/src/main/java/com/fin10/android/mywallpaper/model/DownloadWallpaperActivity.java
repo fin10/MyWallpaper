@@ -48,7 +48,7 @@ public final class DownloadWallpaperActivity extends AppCompatActivity {
                         if (uri.contains(" ")) {
                             String[] texts = uri.split("\\s|\\n");
                             Log.d(Arrays.toString(texts));
-                            String regex = "\\b(http?)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
+                            String regex = "\\b(http|https)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
                             Pattern pattern = Pattern.compile(regex);
                             for (String text : texts) {
                                 if (pattern.matcher(text).matches()) {
@@ -97,7 +97,7 @@ public final class DownloadWallpaperActivity extends AppCompatActivity {
                 return Service.START_NOT_STICKY;
             }
 
-            Uri uri = intent.getParcelableExtra("uri");
+            final Uri uri = intent.getParcelableExtra("uri");
             Log.d("uri:%s", uri);
             if (uri == null) {
                 Log.e("[%d] the intent has no uri.", startId);
@@ -112,7 +112,7 @@ public final class DownloadWallpaperActivity extends AppCompatActivity {
 
                         @Override
                         public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
-                            boolean result = WallpaperModel.addModel(getBaseContext(), resource);
+                            boolean result = WallpaperModel.addModel(getBaseContext(), uri.getPath(), resource);
                             Toast.makeText(getBaseContext(),
                                     result ? R.string.new_wallpaper_is_added : R.string.failed_to_add_wallpaper, Toast.LENGTH_SHORT).show();
                         }
