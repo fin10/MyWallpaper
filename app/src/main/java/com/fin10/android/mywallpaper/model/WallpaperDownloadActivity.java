@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -29,11 +30,13 @@ import com.bumptech.glide.request.target.SimpleTarget;
 import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.MainActivity;
 import com.fin10.android.mywallpaper.R;
+import com.fin10.android.mywallpaper.settings.SettingsFragment;
+import com.fin10.android.mywallpaper.settings.WallpaperChangeScheduler;
 
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
-public final class DownloadWallpaperActivity extends AppCompatActivity {
+public final class WallpaperDownloadActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -175,11 +178,21 @@ public final class DownloadWallpaperActivity extends AppCompatActivity {
                         @Override
                         public void onResourceReady(final Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
                             Log.d("W:%d, H:%d", resource.getWidth(), resource.getHeight());
-                            new Thread(new Runnable() {
+                            new AsyncTask<Void, Void, Boolean>() {
+
                                 @Override
-                                public void run() {
-                                    WallpaperModel result = WallpaperModel.addModel(getBaseContext(), String.valueOf(uri), resource);
-                                    if (result != null) {
+                                protected Boolean doInBackground(Void... voids) {
+                                    WallpaperModel result = WallpaperModel.addModel(String.valueOf(uri), resource);
+                                    return result != null;
+                                }
+
+                                @Override
+                                protected void onPostExecute(Boolean result) {
+                                    if (result) {
+                                        if (SettingsFragment.isAutoChangeEnabled(getBaseContext())) {
+                                            WallpaperChangeScheduler.start(getBaseContext());
+                                        }
+
                                         NotificationManagerCompat.from(getBaseContext())
                                                 .notify(uri.hashCode(), createDownloadedNotification(getBaseContext(), resource));
                                     } else {
@@ -187,7 +200,7 @@ public final class DownloadWallpaperActivity extends AppCompatActivity {
                                                 .notify(uri.hashCode(), createFailedNotification(getBaseContext(), uri));
                                     }
                                 }
-                            }).start();
+                            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                         }
 
                         @Override

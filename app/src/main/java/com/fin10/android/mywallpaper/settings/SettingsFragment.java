@@ -12,7 +12,6 @@ import android.text.TextUtils;
 
 import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.R;
-import com.fin10.android.mywallpaper.model.WallpaperChangeScheduler;
 
 public final class SettingsFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener {
 
@@ -62,6 +61,7 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
             if (value) WallpaperChangeScheduler.start(getActivity());
             else WallpaperChangeScheduler.stop(getActivity());
         } else if (TextUtils.equals(key, getString(R.string.pref_key_auto_change_period))) {
+            WallpaperChangeScheduler.stop(getActivity());
             WallpaperChangeScheduler.start(getActivity());
         }
 

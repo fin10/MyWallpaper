@@ -12,15 +12,10 @@
     <string name="change_wallpaper_automatically">Change wallpaper automatically</string>
     <string name="wallpaper_is_changed">Wallpaper is changed.</string>
     <string name="close">Close</string>
-    <string name="new_wallpaper_is_added">New wallpaper is added.</string>
-    <string name="failed_to_add_wallpaper">Failed to add wallpaper.</string>
-    <string name="discovery">Discovery</string>
+    <string name="discovery_wallpapers">Discovery wallpapers</string>
     <string name="start_collecting_here">Start collecting here!</string>
     <string name="keep_your_favorite_wallpapers">Keep your favorite wallpapers.</string>
-    <string name="downloading_new_wallpaper">Downloading new wallpaper...</string>
-    <string name="set_as_wallpaer">Set as wallpaper</string>
-    <string name="new_wallpaper_downloaded">New wallpaper downloaded</string>
-    <string name="retry">Retry</string>
+    <string name="downloading_new_wallpaper">Downloading new wallpaper…</string>
     <string name="failed_to_download_wallpaper">Failed to download wallpaper</string>
     <string name="new_wallpaper">New wallpaper</string>
     <string name="download_complete">Download complete</string>

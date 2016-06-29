@@ -54,12 +54,12 @@
 
         <Button
             android:id="@+id/discovery_button"
-            android:layout_width="160dp"
+            android:layout_width="220dp"
             android:layout_height="48dp"
             android:backgroundTint="@color/colorAccent"
             android:elevation="2dp"
             android:fontFamily="sans-serif-light"
-            android:text="@string/discovery"
+            android:text="@string/discovery_wallpapers"
             android:textColor="@android:color/white"
             android:textSize="14sp"
             />

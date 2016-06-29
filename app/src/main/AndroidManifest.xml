@@ -33,7 +33,7 @@
             />
 
         <activity
-            android:name=".model.DownloadWallpaperActivity"
+            android:name=".model.WallpaperDownloadActivity"
             android:exported="true"
             android:theme="@style/TransparentAppTheme"
             >
@@ -50,7 +50,7 @@
         </activity>
 
         <service
-            android:name=".model.DownloadWallpaperActivity$DownloadService"
+            android:name=".model.WallpaperDownloadActivity$DownloadService"
             android:exported="false"
             />
 
@@ -66,7 +66,7 @@
         </provider>
 
         <receiver
-            android:name=".model.WallpaperChangeScheduler"
+            android:name=".settings.WallpaperChangeScheduler"
             android:exported="false"
             >
 

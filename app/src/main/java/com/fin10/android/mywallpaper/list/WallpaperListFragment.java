@@ -332,8 +332,9 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
             return mSelectedModels;
         }
 
-        public void remove(List<WallpaperModel> models) {
-            for (WallpaperModel model : models) {
+        public void remove(@NonNull List<WallpaperModel> models) {
+            List<WallpaperModel> copy = new ArrayList<>(models);
+            for (WallpaperModel model : copy) {
                 WallpaperModel.removeModel(model);
             }
         }

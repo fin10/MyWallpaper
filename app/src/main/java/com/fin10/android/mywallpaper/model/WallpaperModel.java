@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.XmlResourceParser;
 import android.graphics.Bitmap;
-import android.os.Handler;
-import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -14,7 +12,6 @@ import android.text.TextUtils;
 
 import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.R;
-import com.fin10.android.mywallpaper.settings.SettingsFragment;
 import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.NotNull;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
@@ -62,8 +59,7 @@ public final class WallpaperModel extends BaseModel {
 
     public static void init(@NonNull Context context) {
         FlowManager.init(new FlowConfig.Builder(context).build());
-        XmlResourceParser parser = context.getResources().getXml(R.xml.filepaths);
-        try {
+        try (XmlResourceParser parser = context.getResources().getXml(R.xml.filepaths)) {
             for (; !TextUtils.equals(parser.getName(), "files-path"); parser.next()) ;
             String path = parser.getAttributeValue(null, "path");
             ROOT_PATH = context.getFilesDir() + "/" + path;
@@ -71,8 +67,6 @@ public final class WallpaperModel extends BaseModel {
             if (!file.exists()) file.mkdir();
         } catch (XmlPullParserException | IOException e) {
             e.printStackTrace();
-        } finally {
-            parser.close();
         }
     }
 
@@ -80,12 +74,6 @@ public final class WallpaperModel extends BaseModel {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
         long id = pref.getLong(context.getString(R.string.pref_key_current_wallpaper_id), -1);
         return id == model.getId();
-    }
-
-    static long getCount() {
-        return SQLite.select()
-                .from(WallpaperModel.class)
-                .count();
     }
 
     @Nullable
@@ -97,7 +85,7 @@ public final class WallpaperModel extends BaseModel {
     }
 
     @Nullable
-    static WallpaperModel addModel(@NonNull final Context context, @NonNull String source, @NonNull Bitmap bitmap) {
+    static WallpaperModel addModel(@NonNull String source, @NonNull Bitmap bitmap) {
         FileOutputStream os = null;
         try {
             final WallpaperModel model = new WallpaperModel();
@@ -112,17 +100,6 @@ public final class WallpaperModel extends BaseModel {
 
             model.mImagePath = file.getAbsolutePath();
             model.insert();
-
-            Handler handler = new Handler(Looper.getMainLooper());
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    long count = getCount();
-                    if (count == 2 && SettingsFragment.isAutoChangeEnabled(context)) {
-                        WallpaperChangeScheduler.start(context);
-                    }
-                }
-            });
 
             EventBus.getDefault().post(new AddEvent(model));
 
