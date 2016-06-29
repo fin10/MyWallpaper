@@ -1,25 +1,33 @@
 package com.fin10.android.mywallpaper.model;
 
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.NotificationCompat;
 import android.text.TextUtils;
-import android.widget.Toast;
+import android.view.WindowManager;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.fin10.android.mywallpaper.Log;
+import com.fin10.android.mywallpaper.MainActivity;
 import com.fin10.android.mywallpaper.R;
 
 import java.util.Arrays;
@@ -79,9 +87,60 @@ public final class DownloadWallpaperActivity extends AppCompatActivity {
             context.startService(i);
         }
 
-        @Override
-        public void onCreate() {
-            super.onCreate();
+        @NonNull
+        private static Pair<Integer, Integer> getScreenSize(@NonNull Context context) {
+            WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+            Point size = new Point();
+            wm.getDefaultDisplay().getSize(size);
+            return new Pair<>(size.x, size.y);
+        }
+
+        @NonNull
+        private static Notification createDownloadingNotification(@NonNull Context context, @NonNull Uri uri) {
+            return new NotificationCompat.Builder(context)
+                    .setSmallIcon(R.mipmap.ic_wallpaper_white_48dp)
+                    .setColor(ContextCompat.getColor(context, R.color.colorPrimary))
+                    .setCategory(Notification.CATEGORY_PROGRESS)
+                    .setContentTitle(context.getString(R.string.downloading_new_wallpaper))
+                    .setContentText(String.valueOf(uri))
+                    .setProgress(0, 0, true)
+                    .setOngoing(true)
+                    .setShowWhen(false)
+                    .build();
+        }
+
+        @NonNull
+        private static Notification createDownloadedNotification(@NonNull Context context, @NonNull Bitmap bitmap) {
+            return new NotificationCompat.Builder(context)
+                    .setSmallIcon(R.mipmap.ic_wallpaper_white_48dp)
+                    .setColor(ContextCompat.getColor(context, R.color.colorPrimary))
+                    .setCategory(Notification.CATEGORY_STATUS)
+                    .setContentTitle(context.getString(R.string.new_wallpaper))
+                    .setContentText(context.getString(R.string.download_complete))
+                    .setLargeIcon(bitmap)
+                    .setStyle(new NotificationCompat.BigPictureStyle().bigPicture(bitmap))
+                    .setContentIntent(createAppLaunchPendingIntent(context))
+                    .setAutoCancel(true)
+                    .build();
+        }
+
+        @NonNull
+        private static Notification createFailedNotification(@NonNull Context context, @NonNull Uri uri) {
+            return new NotificationCompat.Builder(context)
+                    .setSmallIcon(R.mipmap.ic_wallpaper_white_48dp)
+                    .setColor(ContextCompat.getColor(context, R.color.colorPrimary))
+                    .setCategory(Notification.CATEGORY_ERROR)
+                    .setContentTitle(context.getString(R.string.failed_to_download))
+                    .setStyle(new NotificationCompat.BigTextStyle().bigText(String.valueOf(uri)))
+                    .setContentIntent(createAppLaunchPendingIntent(context))
+                    .setAutoCancel(true)
+                    .build();
+        }
+
+        @NonNull
+        private static PendingIntent createAppLaunchPendingIntent(@NonNull Context context) {
+            Intent intent = new Intent(context, MainActivity.class);
+            return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         }
 
         @Nullable
@@ -104,33 +163,43 @@ public final class DownloadWallpaperActivity extends AppCompatActivity {
                 return Service.START_NOT_STICKY;
             }
 
+            NotificationManagerCompat.from(this).notify(uri.hashCode(), createDownloadingNotification(this, uri));
+
+            Pair<Integer, Integer> size = getScreenSize(this);
             Glide.with(this)
                     .load(uri)
                     .asBitmap()
                     .diskCacheStrategy(DiskCacheStrategy.SOURCE)
-                    .into(new SimpleTarget<Bitmap>() {
+                    .into(new SimpleTarget<Bitmap>(size.first, size.second) {
 
                         @Override
-                        public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
-                            boolean result = WallpaperModel.addModel(getBaseContext(), uri.getPath(), resource);
-                            Toast.makeText(getBaseContext(),
-                                    result ? R.string.new_wallpaper_is_added : R.string.failed_to_add_wallpaper, Toast.LENGTH_SHORT).show();
+                        public void onResourceReady(final Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+                            Log.d("W:%d, H:%d", resource.getWidth(), resource.getHeight());
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    WallpaperModel result = WallpaperModel.addModel(getBaseContext(), String.valueOf(uri), resource);
+                                    if (result != null) {
+                                        NotificationManagerCompat.from(getBaseContext())
+                                                .notify(uri.hashCode(), createDownloadedNotification(getBaseContext(), resource));
+                                    } else {
+                                        NotificationManagerCompat.from(getBaseContext())
+                                                .notify(uri.hashCode(), createFailedNotification(getBaseContext(), uri));
+                                    }
+                                }
+                            }).start();
                         }
 
                         @Override
                         public void onLoadFailed(Exception e, Drawable errorDrawable) {
                             super.onLoadFailed(e, errorDrawable);
                             if (e != null) e.printStackTrace();
-                            Toast.makeText(getBaseContext(), R.string.failed_to_add_wallpaper, Toast.LENGTH_LONG).show();
+                            NotificationManagerCompat.from(getBaseContext())
+                                    .notify(uri.hashCode(), createFailedNotification(getBaseContext(), uri));
                         }
                     });
 
             return Service.START_NOT_STICKY;
-        }
-
-        @Override
-        public void onDestroy() {
-            super.onDestroy();
         }
     }
 }

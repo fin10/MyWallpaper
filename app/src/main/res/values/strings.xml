@@ -17,4 +17,12 @@
     <string name="discovery">Discovery</string>
     <string name="start_collecting_here">Start collecting here!</string>
     <string name="keep_your_favorite_wallpapers">Keep your favorite wallpapers.</string>
+    <string name="downloading_new_wallpaper">Downloading new wallpaper...</string>
+    <string name="set_as_wallpaer">Set as wallpaper</string>
+    <string name="new_wallpaper_downloaded">New wallpaper downloaded</string>
+    <string name="retry">Retry</string>
+    <string name="failed_to_download_wallpaper">Failed to download wallpaper</string>
+    <string name="new_wallpaper">New wallpaper</string>
+    <string name="download_complete">Download complete</string>
+    <string name="failed_to_download">Failed to download</string>
 </resources>

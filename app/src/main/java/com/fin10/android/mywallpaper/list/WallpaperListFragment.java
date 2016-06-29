@@ -29,6 +29,10 @@ import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
 import com.fin10.android.mywallpaper.widget.GridSpacingItemDecoration;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -105,7 +109,16 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
     private RecyclerView.AdapterDataObserver mObserver = new RecyclerView.AdapterDataObserver() {
 
         @Override
+        public void onItemRangeInserted(int positionStart, int itemCount) {
+            refreshEmptyView();
+        }
+
+        @Override
         public void onItemRangeRemoved(int positionStart, int itemCount) {
+            refreshEmptyView();
+        }
+
+        private void refreshEmptyView() {
             int count = mAdapter.getItemCount();
             if (count == 0) {
                 mEmptyView.setVisibility(View.VISIBLE);
@@ -143,6 +156,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
     @Override
     public void onResume() {
         super.onResume();
+        mAdapter.notifyDataSetChanged();
         int count = mAdapter.getItemCount();
         if (count == 0) {
             mEmptyView.setVisibility(View.VISIBLE);
@@ -192,7 +206,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         }
     }
 
-    private static final class WallpaperListAdapter extends RecyclerView.Adapter implements WallpaperModel.OnEventListener {
+    private static final class WallpaperListAdapter extends RecyclerView.Adapter {
 
         private final List<WallpaperModel> mModels;
         private final List<WallpaperModel> mSelectedModels = new ArrayList<>();
@@ -204,11 +218,11 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         public WallpaperListAdapter(@Nullable OnItemEventListener listener) {
             mListener = listener;
             mModels = WallpaperModel.getModels();
-            WallpaperModel.addEventListener(this);
+            EventBus.getDefault().register(this);
         }
 
         public void clear() {
-            WallpaperModel.removeEventListener(this);
+            EventBus.getDefault().unregister(this);
         }
 
         @Override
@@ -233,16 +247,16 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
             return mModels.size();
         }
 
-        @Override
-        public void onAdded(@NonNull WallpaperModel model) {
-            mModels.add(0, model);
+        @Subscribe(threadMode = ThreadMode.MAIN)
+        public void onAdded(@NonNull WallpaperModel.AddEvent event) {
+            mModels.add(0, event.model);
             notifyItemInserted(0);
         }
 
-        @Override
-        public void onRemoved(long id) {
+        @Subscribe(threadMode = ThreadMode.MAIN)
+        public void onRemoved(@NonNull WallpaperModel.RemoveEvent event) {
             for (WallpaperModel model : mSelectedModels) {
-                if (model.getId() == id) {
+                if (model.getId() == event.id) {
                     mSelectedModels.remove(model);
                     break;
                 }
@@ -250,7 +264,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
             int position = 0;
             for (WallpaperModel model : mModels) {
-                if (model.getId() == id) {
+                if (model.getId() == event.id) {
                     mModels.remove(model);
                     notifyItemRemoved(position);
                     break;
@@ -259,8 +273,8 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
             }
         }
 
-        @Override
-        public void onWallpaperChanged(long id) {
+        @Subscribe(threadMode = ThreadMode.MAIN)
+        public void onWallpaperChanged(@NonNull WallpaperModel.SetAsWallpaperEvent event) {
             if (mMarkedModelId > 0) {
                 int position = 0;
                 for (WallpaperModel model : mModels) {
@@ -274,7 +288,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
             int position = 0;
             for (WallpaperModel model : mModels) {
-                if (model.getId() == id) {
+                if (model.getId() == event.id) {
                     notifyItemChanged(position);
                     break;
                 }

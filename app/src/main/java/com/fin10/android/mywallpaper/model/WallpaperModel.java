@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.content.res.XmlResourceParser;
 import android.graphics.Bitmap;
 import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -15,6 +16,7 @@ import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.settings.SettingsFragment;
 import com.raizlabs.android.dbflow.annotation.Column;
+import com.raizlabs.android.dbflow.annotation.NotNull;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;
 import com.raizlabs.android.dbflow.config.FlowConfig;
@@ -22,6 +24,7 @@ import com.raizlabs.android.dbflow.config.FlowManager;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.raizlabs.android.dbflow.structure.BaseModel;
 
+import org.greenrobot.eventbus.EventBus;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
@@ -29,13 +32,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.LinkedList;
 import java.util.List;
 
 @Table(database = WallpaperDatabase.class)
 public final class WallpaperModel extends BaseModel {
 
-    private static final List<OnEventListener> sListeners = new LinkedList<>();
     private static String ROOT_PATH;
 
     @Column(name = "_id", getterName = "getId")
@@ -49,9 +50,11 @@ public final class WallpaperModel extends BaseModel {
     String mSource;
 
     @Column(name = "image_path", getterName = "getImagePath")
+    @NotNull
     String mImagePath;
 
     @Column(name = "creation_time")
+    @NotNull
     long mCreationTime;
 
     @Column(name = "applied_count", defaultValue = "0")
@@ -70,20 +73,6 @@ public final class WallpaperModel extends BaseModel {
             e.printStackTrace();
         } finally {
             parser.close();
-        }
-    }
-
-    public static void addEventListener(@NonNull OnEventListener listener) {
-        synchronized (sListeners) {
-            if (!sListeners.contains(listener)) {
-                sListeners.add(listener);
-            }
-        }
-    }
-
-    public static void removeEventListener(@NonNull OnEventListener listener) {
-        synchronized (sListeners) {
-            sListeners.remove(listener);
         }
     }
 
@@ -107,39 +96,40 @@ public final class WallpaperModel extends BaseModel {
                 .queryList();
     }
 
-    static boolean addModel(@NonNull Context context, @NonNull String source, @NonNull Bitmap bitmap) {
+    @Nullable
+    static WallpaperModel addModel(@NonNull final Context context, @NonNull String source, @NonNull Bitmap bitmap) {
         FileOutputStream os = null;
-        WallpaperModel model = new WallpaperModel();
-        model.mCreationTime = System.currentTimeMillis();
-        model.mSource = source;
-        model.insert();
-
         try {
-            File file = new File(ROOT_PATH, model.mId + ".png");
+            final WallpaperModel model = new WallpaperModel();
+            model.mCreationTime = System.currentTimeMillis();
+            model.mSource = source;
+
+            File file = new File(ROOT_PATH, model.mCreationTime + ".png");
             Log.d("file:%s", file);
             os = new FileOutputStream(file);
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, os);
             os.flush();
 
             model.mImagePath = file.getAbsolutePath();
-            model.update();
+            model.insert();
 
-            long count = getCount();
-            if (count == 2 && SettingsFragment.isAutoChangeEnabled(context)) {
-                WallpaperChangeScheduler.start(context);
-            }
-
-            synchronized (sListeners) {
-                for (OnEventListener listener : sListeners) {
-                    listener.onAdded(model);
+            Handler handler = new Handler(Looper.getMainLooper());
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    long count = getCount();
+                    if (count == 2 && SettingsFragment.isAutoChangeEnabled(context)) {
+                        WallpaperChangeScheduler.start(context);
+                    }
                 }
-            }
+            });
 
-            return true;
+            EventBus.getDefault().post(new AddEvent(model));
+
+            return model;
 
         } catch (IOException e) {
             e.printStackTrace();
-            model.delete();
         } finally {
             try {
                 if (os != null) os.close();
@@ -147,7 +137,8 @@ public final class WallpaperModel extends BaseModel {
                 e.printStackTrace();
             }
         }
-        return false;
+
+        return null;
     }
 
     public static void removeModel(@NonNull final WallpaperModel model) {
@@ -159,18 +150,7 @@ public final class WallpaperModel extends BaseModel {
         }
 
         model.delete();
-
-        Handler handler = new Handler();
-        synchronized (sListeners) {
-            for (final OnEventListener listener : sListeners) {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        listener.onRemoved(model.getId());
-                    }
-                });
-            }
-        }
+        EventBus.getDefault().post(new RemoveEvent(model.getId()));
     }
 
     public long getId() {
@@ -193,11 +173,8 @@ public final class WallpaperModel extends BaseModel {
             SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
             pref.edit().putLong(context.getString(R.string.pref_key_current_wallpaper_id), mId).apply();
 
-            synchronized (sListeners) {
-                for (OnEventListener listener : sListeners) {
-                    listener.onWallpaperChanged(mId);
-                }
-            }
+            EventBus.getDefault().post(new SetAsWallpaperEvent(mId));
+
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -225,11 +202,32 @@ public final class WallpaperModel extends BaseModel {
         return (int) (mId ^ (mId >>> 32));
     }
 
-    public interface OnEventListener {
-        void onAdded(@NonNull WallpaperModel model);
+    public static final class AddEvent {
 
-        void onRemoved(long id);
+        @NonNull
+        public final WallpaperModel model;
 
-        void onWallpaperChanged(long id);
+        private AddEvent(@NonNull WallpaperModel model) {
+            this.model = model;
+        }
     }
+
+    public static final class RemoveEvent {
+
+        public final long id;
+
+        private RemoveEvent(long id) {
+            this.id = id;
+        }
+    }
+
+    public static final class SetAsWallpaperEvent {
+
+        public final long id;
+
+        private SetAsWallpaperEvent(long id) {
+            this.id = id;
+        }
+    }
+
 }

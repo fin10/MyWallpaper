@@ -28,7 +28,7 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:24.0.0'
     compile 'com.android.support:cardview-v7:24.0.0'
     compile 'com.android.support:design:24.0.0'
-
+    compile 'org.greenrobot:eventbus:3.0.0'
     apt "com.github.Raizlabs.DBFlow:dbflow-processor:3.0.1"
     // use kapt for kotlin apt
     compile 'com.github.Raizlabs.DBFlow:dbflow-core:3.0.1'

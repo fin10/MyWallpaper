@@ -17,7 +17,11 @@ import android.view.View;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
 import com.fin10.android.mywallpaper.settings.SettingsActivity;
 
-public final class MainActivity extends AppCompatActivity implements WallpaperModel.OnEventListener {
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
+public final class MainActivity extends AppCompatActivity {
 
     private Snackbar mSnackBar;
 
@@ -25,7 +29,7 @@ public final class MainActivity extends AppCompatActivity implements WallpaperMo
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        WallpaperModel.addEventListener(this);
+        EventBus.getDefault().register(this);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -65,19 +69,11 @@ public final class MainActivity extends AppCompatActivity implements WallpaperMo
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        WallpaperModel.removeEventListener(this);
+        EventBus.getDefault().unregister(this);
     }
 
-    @Override
-    public void onAdded(@NonNull WallpaperModel model) {
-    }
-
-    @Override
-    public void onRemoved(long id) {
-    }
-
-    @Override
-    public void onWallpaperChanged(long id) {
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onWallpaperChanged(@NonNull WallpaperModel.SetAsWallpaperEvent event) {
         if (!mSnackBar.isShown()) {
             mSnackBar.show();
         }
