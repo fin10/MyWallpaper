@@ -15,9 +15,34 @@ import com.fin10.android.mywallpaper.R;
 
 public final class SettingsFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener {
 
+    public static void setTutorialEnabled(@NonNull Context context, boolean enabled) {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+        pref.edit().putBoolean(context.getString(R.string.pref_key_tutorial_enabled), enabled).apply();
+    }
+
+    public static boolean isTutorialEnabled(@NonNull Context context) {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+        return pref.getBoolean(context.getString(R.string.pref_key_tutorial_enabled), true);
+    }
+
+    public static void setAutoChangeEnabled(@NonNull Context context, boolean enabled) {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+        pref.edit().putBoolean(context.getString(R.string.pref_key_auto_change_enabled), enabled).apply();
+    }
+
     public static boolean isAutoChangeEnabled(@NonNull Context context) {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
         return pref.getBoolean(context.getString(R.string.pref_key_auto_change_enabled), false);
+    }
+
+    public static void setPeriod(@NonNull Context context, int period) {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+        pref.edit().putInt(context.getString(R.string.pref_key_auto_change_period), period).apply();
+    }
+
+    public static int getPeriod(Context context) {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+        return pref.getInt(context.getString(R.string.pref_key_auto_change_period), PeriodPreference.Period.USUALLY);
     }
 
     public static long getInterval(@NonNull Context context) {
@@ -43,7 +68,6 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.settings);
-        PreferenceManager.setDefaultValues(getActivity(), R.xml.settings, false);
 
         Preference autoChangeEnabled = findPreference(getString(R.string.pref_key_auto_change_enabled));
         autoChangeEnabled.setOnPreferenceChangeListener(this);
@@ -58,11 +82,11 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
         String key = preference.getKey();
         if (TextUtils.equals(key, getString(R.string.pref_key_auto_change_enabled))) {
             boolean value = (boolean) newValue;
-            if (value) WallpaperChangeScheduler.start(getActivity());
+            if (value) WallpaperChangeScheduler.start(getActivity(), SettingsFragment.getInterval(getActivity()));
             else WallpaperChangeScheduler.stop(getActivity());
         } else if (TextUtils.equals(key, getString(R.string.pref_key_auto_change_period))) {
             WallpaperChangeScheduler.stop(getActivity());
-            WallpaperChangeScheduler.start(getActivity());
+            WallpaperChangeScheduler.start(getActivity(), SettingsFragment.getInterval(getActivity()));
         }
 
         return true;

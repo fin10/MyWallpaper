@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.fin10.android.mywallpaper.Constants;
@@ -78,6 +79,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                 case R.id.menu_item_delete: {
                     if (mDeleteDialog == null) {
                         mDeleteDialog = new AlertDialog.Builder(getActivity())
+                                .setTitle(R.string.delete)
                                 .setMessage(R.string.do_you_want_to_delete)
                                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 
@@ -349,6 +351,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                 itemView.setTag(R.id.image_view, itemView.findViewById(R.id.image_view));
                 itemView.setTag(R.id.marker_view, itemView.findViewById(R.id.marker_view));
                 itemView.setTag(R.id.check_box, itemView.findViewById(R.id.check_box));
+                itemView.setTag(R.id.applied_count_view, itemView.findViewById(R.id.applied_count_view));
 
                 View clickView = itemView.findViewById(R.id.click_view);
                 clickView.setOnClickListener(this);
@@ -372,6 +375,9 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                 CheckBox checkBox = (CheckBox) itemView.getTag(R.id.check_box);
                 checkBox.setVisibility(View.VISIBLE);
                 checkBox.setChecked(selected);
+
+                TextView textView = (TextView) itemView.getTag(R.id.applied_count_view);
+                textView.setText(String.valueOf(model.getAppliedCount()));
             }
 
             @Override

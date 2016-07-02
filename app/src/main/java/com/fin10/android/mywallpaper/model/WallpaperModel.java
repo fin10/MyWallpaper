@@ -139,6 +139,10 @@ public final class WallpaperModel extends BaseModel {
         return mImagePath;
     }
 
+    public long getAppliedCount() {
+        return mAppliedCount;
+    }
+
     public void setAsWallpaper(@NonNull Context context) {
         InputStream is = null;
         try {

@@ -27,6 +27,12 @@
         </activity>
 
         <activity
+            android:name=".tutorial.TutorialActivity"
+            android:exported="false"
+            android:theme="@style/TutorialTheme"
+            />
+
+        <activity
             android:name=".settings.SettingsActivity"
             android:exported="false"
             android:label="@string/settings"

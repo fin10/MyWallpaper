@@ -56,7 +56,7 @@
             android:id="@+id/discovery_button"
             android:layout_width="220dp"
             android:layout_height="48dp"
-            android:backgroundTint="@color/colorAccent"
+            android:backgroundTint="@color/accent"
             android:elevation="2dp"
             android:fontFamily="sans-serif-light"
             android:text="@string/discovery_wallpapers"

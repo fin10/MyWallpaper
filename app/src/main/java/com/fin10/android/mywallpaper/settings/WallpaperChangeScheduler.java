@@ -15,8 +15,7 @@ import java.util.Random;
 
 public final class WallpaperChangeScheduler extends BroadcastReceiver {
 
-    public static void start(@NonNull Context context) {
-        long interval = SettingsFragment.getInterval(context);
+    public static void start(@NonNull Context context, long interval) {
         Log.d("interval:%d", interval);
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + interval, interval, createOperation(context));
@@ -46,7 +45,7 @@ public final class WallpaperChangeScheduler extends BroadcastReceiver {
         }
 
         if (Intent.ACTION_BOOT_COMPLETED.equals(action)) {
-            start(context);
+            start(context, SettingsFragment.getInterval(context));
         } else {
             Random random = new Random();
             while (count > 1) {

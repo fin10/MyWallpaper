@@ -23,10 +23,39 @@
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:layout_alignParentEnd="true"
+        android:layout_margin="2dp"
         android:alpha="0.9"
         android:src="@mipmap/ic_bookmark_black_48dp"
-        android:tint="@color/colorAccent"
+        android:tint="@color/accent"
         tools:ignore="ContentDescription"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:layout_alignParentBottom="true"
+        android:background="#7f000000"
+        android:gravity="end|center_vertical"
+        android:orientation="horizontal"
+        android:paddingEnd="12dp"
+        android:paddingStart="12dp">
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginEnd="6dp"
+            android:src="@mipmap/ic_wallpaper_white_48dp"
+            />
+
+        <TextView
+            android:id="@+id/applied_count_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-light"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            />
+
+    </LinearLayout>
 
     <View
         android:id="@+id/click_view"

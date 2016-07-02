@@ -102,7 +102,7 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
         private static Notification createDownloadingNotification(@NonNull Context context, @NonNull Uri uri) {
             return new NotificationCompat.Builder(context)
                     .setSmallIcon(R.mipmap.ic_wallpaper_white_48dp)
-                    .setColor(ContextCompat.getColor(context, R.color.colorPrimary))
+                    .setColor(ContextCompat.getColor(context, R.color.primary))
                     .setCategory(Notification.CATEGORY_PROGRESS)
                     .setContentTitle(context.getString(R.string.downloading_new_wallpaper))
                     .setContentText(String.valueOf(uri))
@@ -116,7 +116,7 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
         private static Notification createDownloadedNotification(@NonNull Context context, @NonNull Bitmap bitmap) {
             return new NotificationCompat.Builder(context)
                     .setSmallIcon(R.mipmap.ic_wallpaper_white_48dp)
-                    .setColor(ContextCompat.getColor(context, R.color.colorPrimary))
+                    .setColor(ContextCompat.getColor(context, R.color.primary))
                     .setCategory(Notification.CATEGORY_STATUS)
                     .setContentTitle(context.getString(R.string.new_wallpaper))
                     .setContentText(context.getString(R.string.download_complete))
@@ -131,7 +131,7 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
         private static Notification createFailedNotification(@NonNull Context context, @NonNull Uri uri) {
             return new NotificationCompat.Builder(context)
                     .setSmallIcon(R.mipmap.ic_wallpaper_white_48dp)
-                    .setColor(ContextCompat.getColor(context, R.color.colorPrimary))
+                    .setColor(ContextCompat.getColor(context, R.color.primary))
                     .setCategory(Notification.CATEGORY_ERROR)
                     .setContentTitle(context.getString(R.string.failed_to_download))
                     .setStyle(new NotificationCompat.BigTextStyle().bigText(String.valueOf(uri)))
@@ -190,7 +190,7 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
                                 protected void onPostExecute(Boolean result) {
                                     if (result) {
                                         if (SettingsFragment.isAutoChangeEnabled(getBaseContext())) {
-                                            WallpaperChangeScheduler.start(getBaseContext());
+                                            WallpaperChangeScheduler.start(getBaseContext(), SettingsFragment.getInterval(getBaseContext()));
                                         }
 
                                         NotificationManagerCompat.from(getBaseContext())
