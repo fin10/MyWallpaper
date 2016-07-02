@@ -9,6 +9,7 @@
         <item name="windowActionModeOverlay">true</item>
         <item name="android:actionModeBackground">@color/primary_dark</item>
         <item name="android:windowBackground">@color/background</item>
+        <item name="android:windowDisablePreview">true</item>
     </style>
 
     <style name="TutorialTheme" parent="AppTheme">

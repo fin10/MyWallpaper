@@ -45,31 +45,38 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
             String action = intent.getAction();
             String type = intent.getType();
             ClipData clipData = intent.getClipData();
-            if (TextUtils.isEmpty(type) && clipData.getItemCount() <= 0) {
-                return;
-            }
-
             Log.d("%s:%s", type, clipData);
+            if (TextUtils.isEmpty(type)) return;
+
             if (Intent.ACTION_SEND.equals(action) || Intent.ACTION_SEND_MULTIPLE.equals(action)) {
-                int count = clipData.getItemCount();
                 if ("text/plain".equals(type)) {
-                    for (int i = 0; i < count; ++i) {
-                        String uri = String.valueOf(clipData.getItemAt(i).getText());
-                        if (uri.contains(" ")) {
-                            String[] texts = uri.split("\\s|\\n");
-                            String regex = "\\b(http|https)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
-                            Pattern pattern = Pattern.compile(regex);
-                            for (String text : texts) {
-                                if (pattern.matcher(text).matches()) {
-                                    uri = text;
-                                    break;
+                    String uri = intent.getStringExtra(Intent.EXTRA_TEXT);
+                    if (!TextUtils.isEmpty(uri)) {
+                        DownloadService.download(this, Uri.parse(uri));
+                    } else {
+                        int count = clipData.getItemCount();
+                        for (int i = 0; i < count; ++i) {
+                            if (clipData.getItemAt(i).getUri() != null) {
+                                DownloadService.download(this, clipData.getItemAt(i).getUri());
+                            } else {
+                                if (uri.contains(" ")) {
+                                    String[] texts = uri.split("\\s|\\n");
+                                    String regex = "\\b(http|https)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
+                                    Pattern pattern = Pattern.compile(regex);
+                                    for (String text : texts) {
+                                        if (pattern.matcher(text).matches()) {
+                                            uri = text;
+                                            break;
+                                        }
+                                    }
                                 }
+
+                                DownloadService.download(this, Uri.parse(uri));
                             }
                         }
-
-                        DownloadService.download(this, Uri.parse(uri));
                     }
                 } else if (type.startsWith("image/")) {
+                    int count = clipData.getItemCount();
                     for (int i = 0; i < count; ++i) {
                         DownloadService.download(this, clipData.getItemAt(i).getUri());
                     }
