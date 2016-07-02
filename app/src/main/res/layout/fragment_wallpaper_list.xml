@@ -24,11 +24,11 @@
         >
 
         <ImageView
-            android:layout_width="72dp"
-            android:layout_height="72dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_marginBottom="8dp"
             android:src="@mipmap/ic_wallpaper_white_48dp"
-            android:tint="#b2000000"
+            android:tint="@color/primary_text"
             />
 
         <TextView
@@ -37,7 +37,7 @@
             android:layout_marginBottom="8dp"
             android:gravity="center"
             android:text="@string/start_collecting_here"
-            android:textColor="@android:color/black"
+            android:textColor="@color/primary_text"
             android:textSize="24sp"
             />
 
@@ -48,7 +48,7 @@
             android:fontFamily="sans-serif-light"
             android:gravity="center"
             android:text="@string/keep_your_favorite_wallpapers"
-            android:textColor="#b2000000"
+            android:textColor="@color/secondary_text"
             android:textSize="14sp"
             />
 

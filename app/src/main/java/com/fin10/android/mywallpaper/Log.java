@@ -9,7 +9,7 @@ public final class Log {
     public static void d(@NonNull String format, Object... args) {
         try {
             android.util.Log.d(TAG, buildMsg(String.format(format, args)));
-        } catch (NullPointerException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -17,7 +17,7 @@ public final class Log {
     public static void e(@NonNull String format, Object... args) {
         try {
             android.util.Log.e(TAG, buildMsg(String.format(format, args)));
-        } catch (NullPointerException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

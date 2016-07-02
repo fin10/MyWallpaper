@@ -33,7 +33,6 @@ import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.settings.SettingsFragment;
 import com.fin10.android.mywallpaper.settings.WallpaperChangeScheduler;
 
-import java.util.Arrays;
 import java.util.regex.Pattern;
 
 public final class WallpaperDownloadActivity extends AppCompatActivity {
@@ -58,7 +57,6 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
                         String uri = String.valueOf(clipData.getItemAt(i).getText());
                         if (uri.contains(" ")) {
                             String[] texts = uri.split("\\s|\\n");
-                            Log.d(Arrays.toString(texts));
                             String regex = "\\b(http|https)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
                             Pattern pattern = Pattern.compile(regex);
                             for (String text : texts) {

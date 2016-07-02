@@ -76,10 +76,10 @@ public final class TutorialActivity extends AppCompatActivity implements ViewPag
 
         public TutorialPageAdapter(FragmentManager fm) {
             super(fm);
-            mColors.add(0xFF03A9F4);
-            mColors.add(0xff303F9F);
-            mColors.add(0xff00796B);
-            mColors.add(0xFF03A9F4);
+            mColors.add(0xFF37AFBF);
+            mColors.add(0xff208DB6);
+            mColors.add(0xff8050FF);
+            mColors.add(0xff446EB6);
         }
 
         @ColorInt
