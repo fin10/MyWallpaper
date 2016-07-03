@@ -6,7 +6,6 @@ import android.app.FragmentManager;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.annotation.ColorInt;
 import android.support.annotation.Nullable;
 import android.support.v13.app.FragmentPagerAdapter;
@@ -48,7 +47,6 @@ public final class TutorialActivity extends AppCompatActivity implements ViewPag
     }
 
     public void onClick(View view) {
-        PreferenceManager.getDefaultSharedPreferences(this).edit().putBoolean(getString(R.string.pref_key_tutorial_enabled), false).apply();
         startActivity(new Intent(this, MainActivity.class));
         SettingsFragment.setTutorialEnabled(this, false);
         finish();

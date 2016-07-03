@@ -15,9 +15,17 @@
     <string name="discovery_wallpapers">Discovery wallpapers</string>
     <string name="start_collecting_here">Start collecting here!</string>
     <string name="keep_your_favorite_wallpapers">Keep your favorite wallpapers.</string>
-    <string name="downloading_new_wallpaper">Downloading new wallpaper</string>
-    <string name="failed_to_download_wallpaper">Failed to download wallpaper</string>
-    <string name="new_wallpaper">New wallpaper</string>
+    <string name="downloading_new_wallpaper">Downloading new wallpaper…</string>
     <string name="download_complete">Download complete</string>
     <string name="failed_to_download">Failed to download</string>
+    <string name="welcome">Welcome!</string>
+    <string name="collect_your_favorite_wallpapers">Collect your favorite wallpapers.</string>
+    <string name="new_wallpaper_is_added">New wallpaper is added.</string>
+    <string name="get_collecting_wallpapers">Get collecting wallpapers.</string>
+    <string name="you_can_get_a_image_as_wallpaper_from_gallery_using_share">You can get a image as wallpaper from Gallery using share.</string>
+    <string name="download_from_the_web">Download from the web.</string>
+    <string name="you_can_download_a_wallpaper_using_share_image_url_from_the_web">You can download a wallpaper using share image URL from the web.</string>
+    <string name="start">Start</string>
+    <string name="change_automatically">Change automatically.</string>
+    <string name="you_can_change_a_wallpaper_automatically_by_below_settings">You can change a wallpaper automatically by below settings.</string>
 </resources>

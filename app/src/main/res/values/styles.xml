@@ -21,4 +21,15 @@
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowTranslucentStatus">true</item>
     </style>
+
+    <style name="HeadlineText" parent="TextAppearance.AppCompat.Headline">
+        <item name="android:textSize">28sp</item>
+        <item name="android:fontFamily">sans-serif-light</item>
+    </style>
+
+    <style name="HeadlineDescriptionText" parent="TextAppearance.AppCompat.Headline">
+        <item name="android:textSize">15sp</item>
+        <item name="android:fontFamily">sans-serif-light</item>
+    </style>
+
 </resources>
