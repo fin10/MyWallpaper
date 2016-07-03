@@ -16,8 +16,8 @@
         android:layout_weight="1"
         android:gravity="center"
         android:orientation="vertical"
-        android:paddingEnd="24dp"
-        android:paddingStart="24dp"
+        android:paddingEnd="20dp"
+        android:paddingStart="20dp"
         >
 
         <TextView
