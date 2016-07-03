@@ -73,7 +73,13 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                     shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, imageUris);
                     shareIntent.setType("image/*");
                     startActivity(Intent.createChooser(shareIntent, getString(R.string.share)));
-                    actionMode.finish();
+
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            actionMode.finish();
+                        }
+                    });
                     break;
                 }
                 case R.id.menu_item_delete: {
@@ -87,7 +93,13 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                                     public void onClick(DialogInterface dialogInterface, int which) {
                                         List<WallpaperModel> items = mAdapter.getSelectedItems();
                                         mAdapter.remove(items);
-                                        actionMode.finish();
+
+                                        getActivity().runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                actionMode.finish();
+                                            }
+                                        });
                                     }
                                 })
                                 .setNegativeButton(android.R.string.no, null)

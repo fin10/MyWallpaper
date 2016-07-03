@@ -3,7 +3,6 @@ package com.fin10.android.mywallpaper.model;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -44,42 +43,32 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
             Intent intent = getIntent();
             String action = intent.getAction();
             String type = intent.getType();
-            ClipData clipData = intent.getClipData();
-            Log.d("%s:%s", type, clipData);
             if (TextUtils.isEmpty(type)) return;
 
             if (Intent.ACTION_SEND.equals(action) || Intent.ACTION_SEND_MULTIPLE.equals(action)) {
                 if ("text/plain".equals(type)) {
                     String uri = intent.getStringExtra(Intent.EXTRA_TEXT);
                     if (!TextUtils.isEmpty(uri)) {
-                        DownloadService.download(this, Uri.parse(uri));
-                    } else {
-                        int count = clipData.getItemCount();
-                        for (int i = 0; i < count; ++i) {
-                            if (clipData.getItemAt(i).getUri() != null) {
-                                DownloadService.download(this, clipData.getItemAt(i).getUri());
-                            } else {
-                                if (uri.contains(" ")) {
-                                    String[] texts = uri.split("\\s|\\n");
-                                    String regex = "\\b(http|https)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
-                                    Pattern pattern = Pattern.compile(regex);
-                                    for (String text : texts) {
-                                        if (pattern.matcher(text).matches()) {
-                                            uri = text;
-                                            break;
-                                        }
-                                    }
+                        if (uri.contains(" ")) {
+                            String[] texts = uri.split("\\s|\\n");
+                            String regex = "\\b(http|https)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
+                            Pattern pattern = Pattern.compile(regex);
+                            for (String text : texts) {
+                                if (pattern.matcher(text).matches()) {
+                                    uri = text;
+                                    break;
                                 }
-
-                                DownloadService.download(this, Uri.parse(uri));
                             }
+                        } else if (!uri.startsWith("http")) {
+                            uri = "https://" + uri;
                         }
                     }
+
+                    DownloadService.download(this, Uri.parse(uri));
+
                 } else if (type.startsWith("image/")) {
-                    int count = clipData.getItemCount();
-                    for (int i = 0; i < count; ++i) {
-                        DownloadService.download(this, clipData.getItemAt(i).getUri());
-                    }
+                    Uri stream = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                    DownloadService.download(this, stream);
                 }
             }
         } finally {
