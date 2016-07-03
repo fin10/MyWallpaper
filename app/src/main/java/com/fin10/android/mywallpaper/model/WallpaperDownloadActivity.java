@@ -32,6 +32,7 @@ import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.settings.SettingsFragment;
 import com.fin10.android.mywallpaper.settings.WallpaperChangeScheduler;
 
+import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 public final class WallpaperDownloadActivity extends AppCompatActivity {
@@ -45,7 +46,7 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
             String type = intent.getType();
             if (TextUtils.isEmpty(type)) return;
 
-            if (Intent.ACTION_SEND.equals(action) || Intent.ACTION_SEND_MULTIPLE.equals(action)) {
+            if (Intent.ACTION_SEND.equals(action)) {
                 if ("text/plain".equals(type)) {
                     String uri = intent.getStringExtra(Intent.EXTRA_TEXT);
                     if (!TextUtils.isEmpty(uri)) {
@@ -69,6 +70,13 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
                 } else if (type.startsWith("image/")) {
                     Uri stream = intent.getParcelableExtra(Intent.EXTRA_STREAM);
                     DownloadService.download(this, stream);
+                }
+            } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
+                if (type.startsWith("image/")) {
+                    ArrayList<Uri> streams = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+                    for (Uri stream : streams) {
+                        DownloadService.download(this, stream);
+                    }
                 }
             }
         } finally {
