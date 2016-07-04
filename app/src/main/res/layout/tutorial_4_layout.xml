@@ -49,8 +49,10 @@
         android:layout_width="280dp"
         android:layout_height="match_parent"
         android:layout_weight="1.6"
+        android:gravity="bottom"
         android:orientation="vertical"
-        android:paddingTop="8dp">
+        android:paddingBottom="48dp"
+        >
 
         <RelativeLayout
             android:id="@+id/auto_change_layout"
