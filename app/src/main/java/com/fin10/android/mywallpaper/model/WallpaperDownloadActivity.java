@@ -21,6 +21,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
 import android.text.TextUtils;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -197,9 +198,11 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
 
                                         NotificationManagerCompat.from(getBaseContext())
                                                 .notify(uri.hashCode(), createDownloadedNotification(getBaseContext(), resource));
+                                        Toast.makeText(getBaseContext(), R.string.new_wallpaper_is_added, Toast.LENGTH_SHORT).show();
                                     } else {
                                         NotificationManagerCompat.from(getBaseContext())
                                                 .notify(uri.hashCode(), createFailedNotification(getBaseContext(), uri));
+                                        Toast.makeText(getBaseContext(), R.string.failed_to_download, Toast.LENGTH_SHORT).show();
                                     }
                                 }
                             }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
@@ -211,6 +214,7 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
                             if (e != null) e.printStackTrace();
                             NotificationManagerCompat.from(getBaseContext())
                                     .notify(uri.hashCode(), createFailedNotification(getBaseContext(), uri));
+                            Toast.makeText(getBaseContext(), R.string.failed_to_download, Toast.LENGTH_SHORT).show();
                         }
                     });
 
