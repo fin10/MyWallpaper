@@ -6,7 +6,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -20,7 +19,6 @@ import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
 import android.text.TextUtils;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -30,6 +28,7 @@ import com.bumptech.glide.request.target.SimpleTarget;
 import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.MainActivity;
 import com.fin10.android.mywallpaper.R;
+import com.fin10.android.mywallpaper.Utils;
 import com.fin10.android.mywallpaper.settings.SettingsFragment;
 import com.fin10.android.mywallpaper.settings.WallpaperChangeScheduler;
 
@@ -91,14 +90,6 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
             Intent i = new Intent(context, DownloadService.class);
             i.putExtra("uri", uri);
             context.startService(i);
-        }
-
-        @NonNull
-        private static Pair<Integer, Integer> getScreenSize(@NonNull Context context) {
-            WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-            Point size = new Point();
-            wm.getDefaultDisplay().getSize(size);
-            return new Pair<>(size.x, size.y);
         }
 
         @NonNull
@@ -171,7 +162,7 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
 
             NotificationManagerCompat.from(this).notify(uri.hashCode(), createDownloadingNotification(this, uri));
 
-            Pair<Integer, Integer> size = getScreenSize(this);
+            Pair<Integer, Integer> size = Utils.getScreenSize(this);
             Glide.with(this)
                     .load(uri)
                     .asBitmap()

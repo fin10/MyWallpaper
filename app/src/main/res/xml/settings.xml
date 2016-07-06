@@ -18,5 +18,12 @@
             android:key="@string/pref_key_auto_change_period"
             />
 
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="@string/pref_key_sync_enabled"
+            android:summary="via Google Drive"
+            android:title="Sync"
+            />
+
     </PreferenceCategory>
 </PreferenceScreen>

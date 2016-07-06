@@ -1,12 +1,15 @@
 package com.fin10.android.mywallpaper.settings;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
+import android.preference.SwitchPreference;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
@@ -14,6 +17,8 @@ import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.R;
 
 public final class SettingsFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener {
+
+    private static final int REQUEST_CODE_LOGIN = 1;
 
     public static void setTutorialEnabled(@NonNull Context context, boolean enabled) {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
@@ -69,11 +74,24 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.settings);
 
-        Preference autoChangeEnabled = findPreference(getString(R.string.pref_key_auto_change_enabled));
-        autoChangeEnabled.setOnPreferenceChangeListener(this);
+        findPreference(getString(R.string.pref_key_auto_change_enabled)).setOnPreferenceChangeListener(this);
+        findPreference(getString(R.string.pref_key_auto_change_period)).setOnPreferenceChangeListener(this);
+        findPreference(getString(R.string.pref_key_sync_enabled)).setOnPreferenceChangeListener(this);
+    }
 
-        Preference autoChangePeriod = findPreference(getString(R.string.pref_key_auto_change_period));
-        autoChangePeriod.setOnPreferenceChangeListener(this);
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.d("[onActivityResult] requestCode:%d, resultCode:%d", requestCode, resultCode);
+        switch (requestCode) {
+            case REQUEST_CODE_LOGIN: {
+                if (resultCode != Activity.RESULT_OK) {
+                    SwitchPreference pref = (SwitchPreference) findPreference(getString(R.string.pref_key_sync_enabled));
+                    pref.setChecked(false);
+                }
+                break;
+            }
+        }
     }
 
     @Override
@@ -87,6 +105,10 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
         } else if (TextUtils.equals(key, getString(R.string.pref_key_auto_change_period))) {
             WallpaperChangeScheduler.stop(getActivity());
             WallpaperChangeScheduler.start(getActivity(), SettingsFragment.getInterval(getActivity()));
+        } else if (TextUtils.equals(key, getString(R.string.pref_key_sync_enabled))) {
+            boolean value = (boolean) newValue;
+            if (value) LoginActivity.login(this, REQUEST_CODE_LOGIN);
+            else LoginActivity.logout(getActivity());
         }
 
         return true;
