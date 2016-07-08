@@ -10,7 +10,7 @@ import android.widget.SeekBar;
 import android.widget.Switch;
 
 import com.fin10.android.mywallpaper.R;
-import com.fin10.android.mywallpaper.settings.SettingsFragment;
+import com.fin10.android.mywallpaper.settings.PreferenceUtils;
 
 public final class AutoChangeTutorialFragment extends TutorialFragment implements CompoundButton.OnCheckedChangeListener, SeekBar.OnSeekBarChangeListener {
 
@@ -24,24 +24,24 @@ public final class AutoChangeTutorialFragment extends TutorialFragment implement
         mSeekBar = (SeekBar) root.findViewById(R.id.seek_bar);
 
         sw.setOnCheckedChangeListener(this);
-        sw.setChecked(SettingsFragment.isAutoChangeEnabled(getActivity()));
+        sw.setChecked(PreferenceUtils.isAutoChangeEnabled(getActivity()));
 
         mSeekBar.setOnSeekBarChangeListener(this);
         mSeekBar.setEnabled(sw.isChecked());
-        mSeekBar.setProgress(SettingsFragment.getPeriod(getActivity()));
+        mSeekBar.setProgress(PreferenceUtils.getPeriod(getActivity()));
 
         return root;
     }
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        SettingsFragment.setAutoChangeEnabled(getActivity(), isChecked);
+        PreferenceUtils.setAutoChangeEnabled(getActivity(), isChecked);
         mSeekBar.setEnabled(isChecked);
     }
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-        SettingsFragment.setPeriod(seekBar.getContext(), progress);
+        PreferenceUtils.setPeriod(seekBar.getContext(), progress);
     }
 
     @Override

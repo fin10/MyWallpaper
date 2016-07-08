@@ -45,7 +45,7 @@ public final class WallpaperChangeScheduler extends BroadcastReceiver {
         }
 
         if (Intent.ACTION_BOOT_COMPLETED.equals(action)) {
-            start(context, SettingsFragment.getInterval(context));
+            start(context, PreferenceUtils.getInterval(context));
         } else {
             Random random = new Random();
             while (count > 1) {

@@ -15,8 +15,8 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.fin10.android.mywallpaper.model.WallpaperModel;
+import com.fin10.android.mywallpaper.settings.PreferenceUtils;
 import com.fin10.android.mywallpaper.settings.SettingsActivity;
-import com.fin10.android.mywallpaper.settings.SettingsFragment;
 import com.fin10.android.mywallpaper.tutorial.TutorialActivity;
 
 import org.greenrobot.eventbus.EventBus;
@@ -30,7 +30,7 @@ public final class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (SettingsFragment.isTutorialEnabled(this)) {
+        if (PreferenceUtils.isTutorialEnabled(this)) {
             startActivity(new Intent(this, TutorialActivity.class));
             finish();
             return;

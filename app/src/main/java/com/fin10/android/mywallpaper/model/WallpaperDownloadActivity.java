@@ -29,7 +29,7 @@ import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.MainActivity;
 import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.Utils;
-import com.fin10.android.mywallpaper.settings.SettingsFragment;
+import com.fin10.android.mywallpaper.settings.PreferenceUtils;
 import com.fin10.android.mywallpaper.settings.WallpaperChangeScheduler;
 
 import java.util.ArrayList;
@@ -183,8 +183,8 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
                                 @Override
                                 protected void onPostExecute(Boolean result) {
                                     if (result) {
-                                        if (SettingsFragment.isAutoChangeEnabled(getBaseContext())) {
-                                            WallpaperChangeScheduler.start(getBaseContext(), SettingsFragment.getInterval(getBaseContext()));
+                                        if (PreferenceUtils.isAutoChangeEnabled(getBaseContext())) {
+                                            WallpaperChangeScheduler.start(getBaseContext(), PreferenceUtils.getInterval(getBaseContext()));
                                         }
 
                                         NotificationManagerCompat.from(getBaseContext())

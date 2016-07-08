@@ -30,7 +30,7 @@ import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.model.SyncScheduler;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
-import com.fin10.android.mywallpaper.settings.SettingsFragment;
+import com.fin10.android.mywallpaper.settings.PreferenceUtils;
 import com.fin10.android.mywallpaper.widget.GridSpacingItemDecoration;
 
 import org.greenrobot.eventbus.EventBus;
@@ -123,7 +123,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
             mAdapter.setSelectionMode(false);
             mActionMode = null;
 
-            if (SettingsFragment.isSyncEnabled(getActivity())) {
+            if (PreferenceUtils.isSyncEnabled(getActivity())) {
                 mRefreshLayout.setEnabled(true);
             }
         }
@@ -178,7 +178,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         mRefreshLayout.setColorSchemeResources(R.color.primary);
         mRefreshLayout.setOnRefreshListener(this);
 
-        if (SettingsFragment.isSyncEnabled(getActivity())) {
+        if (PreferenceUtils.isSyncEnabled(getActivity())) {
             SyncScheduler.sync(getActivity());
             mRefreshLayout.setEnabled(true);
             mLoadingView.setVisibility(View.VISIBLE);
@@ -193,7 +193,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
     @Override
     public void onResume() {
         super.onResume();
-        if (SettingsFragment.isSyncEnabled(getActivity())) {
+        if (PreferenceUtils.isSyncEnabled(getActivity())) {
             SyncScheduler.sync(getActivity());
             mRefreshLayout.setEnabled(true);
         } else {
