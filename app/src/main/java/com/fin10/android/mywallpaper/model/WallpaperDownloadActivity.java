@@ -94,7 +94,7 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
 
         @NonNull
         private static Notification createDownloadingNotification(@NonNull Context context, @NonNull Uri uri) {
-            return new Notification.Builder(context)
+            return new NotificationCompat.Builder(context)
                     .setSmallIcon(R.mipmap.ic_wallpaper_white_48dp)
                     .setColor(ContextCompat.getColor(context, R.color.primary))
                     .setCategory(Notification.CATEGORY_PROGRESS)

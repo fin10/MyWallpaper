@@ -20,7 +20,6 @@ import android.text.format.DateUtils;
 import com.fin10.android.mywallpaper.Log;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.drive.Drive;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -65,13 +64,9 @@ public final class SyncScheduler {
         public void onCreate() {
             Log.d("[onCreate]");
             super.onCreate();
-            mGoogleApiClient = new GoogleApiClient.Builder(this)
-                    .addApi(Drive.API)
-                    .addScope(Drive.SCOPE_FILE)
-                    .addScope(Drive.SCOPE_APPFOLDER)
-                    .addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .build();
+            mGoogleApiClient = DriveApiHelper.createGoogleApiClient(this);
+            mGoogleApiClient.registerConnectionCallbacks(this);
+            mGoogleApiClient.registerConnectionFailedListener(this);
         }
 
         @Nullable
@@ -91,6 +86,8 @@ public final class SyncScheduler {
             Log.d("[onDestroy]");
             super.onDestroy();
             mGoogleApiClient.disconnect();
+            mGoogleApiClient.unregisterConnectionCallbacks(this);
+            mGoogleApiClient.unregisterConnectionFailedListener(this);
         }
 
         @Override

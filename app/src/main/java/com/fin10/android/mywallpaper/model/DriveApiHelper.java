@@ -1,5 +1,6 @@
 package com.fin10.android.mywallpaper.model;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.ParcelFileDescriptor;
@@ -37,10 +38,41 @@ final class DriveApiHelper {
 
     private static final String TARGET_FOLDER_NAME = "My Wallpaper";
 
+    private DriveApiHelper() {
+    }
+
+    @NonNull
+    static GoogleApiClient createGoogleApiClient(@NonNull Context context) {
+        return new GoogleApiClient.Builder(context)
+                .addApi(Drive.API)
+                .addScope(Drive.SCOPE_FILE)
+                .addScope(Drive.SCOPE_APPFOLDER)
+                .build();
+    }
+
     @Nullable
     static String upload(@NonNull GoogleApiClient googleApiClient, @NonNull WallpaperModel model) {
         DriveFolder folder = getTargetFolder(googleApiClient, TARGET_FOLDER_NAME);
         if (folder == null) return null;
+
+        DriveApi.MetadataBufferResult result = folder.queryChildren(googleApiClient,
+                new Query.Builder()
+                        .addFilter(Filters.eq(SearchableField.TITLE, String.valueOf(model.mCreationTime)))
+                        .build())
+                .await();
+        try {
+            if (!result.getStatus().isSuccess()) {
+                Log.e(result.getStatus().toString());
+                return null;
+            }
+
+            if (result.getMetadataBuffer().getCount() != 0) {
+                Log.e("[%d] already exist.", model.mCreationTime);
+                return null;
+            }
+        } finally {
+            result.release();
+        }
 
         DriveApi.DriveContentsResult contentsResult = Drive.DriveApi.newDriveContents(googleApiClient).await();
         if (!contentsResult.getStatus().isSuccess()) {
