@@ -85,16 +85,31 @@ public final class WallpaperModel extends BaseModel {
     }
 
     @Nullable
-    public static List<WallpaperModel> getLocalModels() {
+    static List<WallpaperModel> getLocalModels() {
         return SQLite.select()
                 .from(WallpaperModel.class)
-                .where(WallpaperModel_Table.image_path.like(ROOT_PATH + "%"))
-                .orderBy(WallpaperModel_Table.creation_time, false)
+                .where(WallpaperModel_Table.source.like("http%"))
+                .or(WallpaperModel_Table.source.like("content:%"))
+                .or(WallpaperModel_Table.source.like("file:%"))
+                .or(WallpaperModel_Table.source.isNull())
                 .queryList();
     }
 
     @Nullable
-    static WallpaperModel addModel(@NonNull String source, @NonNull Bitmap bitmap) {
+    static WallpaperModel getModel(@NonNull String source) {
+        return SQLite.select()
+                .from(WallpaperModel.class)
+                .where(WallpaperModel_Table.source.eq(source))
+                .querySingle();
+    }
+
+    @Nullable
+    static WallpaperModel addModel(@NonNull Bitmap bitmap) {
+        return addModel(null, bitmap);
+    }
+
+    @Nullable
+    static WallpaperModel addModel(@Nullable String source, @NonNull Bitmap bitmap) {
         FileOutputStream os = null;
         try {
             final WallpaperModel model = new WallpaperModel();

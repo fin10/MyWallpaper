@@ -1,69 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<android.support.v4.widget.SwipeRefreshLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/swipe_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recycler_view"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:listitem="@layout/wallpaper_list_item"
-        />
-
-    <LinearLayout
-        android:id="@+id/empty_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="16dp"
-        android:background="@drawable/dashed_background"
-        android:gravity="center"
-        android:orientation="vertical"
         >
 
-        <ImageView
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginBottom="8dp"
-            android:src="@mipmap/ic_wallpaper_white_48dp"
-            android:tint="@color/primary_text"
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:listitem="@layout/wallpaper_list_item"
             />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
+        <LinearLayout
+            android:id="@+id/empty_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="16dp"
+            android:background="@drawable/dashed_background"
             android:gravity="center"
-            android:text="@string/start_collecting_here"
-            android:textColor="@color/primary_text"
-            android:textSize="24sp"
-            />
+            android:orientation="vertical"
+            >
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="18dp"
-            android:fontFamily="sans-serif-light"
-            android:gravity="center"
-            android:text="@string/keep_your_favorite_wallpapers"
-            android:textColor="@color/secondary_text"
-            android:textSize="14sp"
-            />
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginBottom="8dp"
+                android:src="@mipmap/ic_wallpaper_white_48dp"
+                android:tint="@color/primary_text"
+                />
 
-        <Button
-            android:id="@+id/discovery_button"
-            android:layout_width="220dp"
-            android:layout_height="48dp"
-            android:backgroundTint="@color/accent"
-            android:elevation="2dp"
-            android:fontFamily="sans-serif-light"
-            android:text="@string/discovery_wallpapers"
-            android:textColor="@android:color/white"
-            android:textSize="14sp"
-            />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:gravity="center"
+                android:text="@string/start_collecting_here"
+                android:textColor="@color/primary_text"
+                android:textSize="24sp"
+                />
 
-    </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="18dp"
+                android:fontFamily="sans-serif-light"
+                android:gravity="center"
+                android:text="@string/keep_your_favorite_wallpapers"
+                android:textColor="@color/secondary_text"
+                android:textSize="14sp"
+                />
 
-</FrameLayout>
+            <Button
+                android:id="@+id/discovery_button"
+                android:layout_width="220dp"
+                android:layout_height="48dp"
+                android:backgroundTint="@color/accent"
+                android:elevation="2dp"
+                android:fontFamily="sans-serif-light"
+                android:text="@string/discovery_wallpapers"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                />
+
+        </LinearLayout>
+
+        <RelativeLayout
+            android:id="@+id/loading_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/background"
+            android:clickable="true"
+            >
+
+            <ProgressBar
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                />
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+</android.support.v4.widget.SwipeRefreshLayout>

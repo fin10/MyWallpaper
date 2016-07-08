@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.FileProvider;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
@@ -27,7 +28,9 @@ import com.bumptech.glide.Glide;
 import com.fin10.android.mywallpaper.Constants;
 import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.R;
+import com.fin10.android.mywallpaper.model.SyncScheduler;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
+import com.fin10.android.mywallpaper.settings.SettingsFragment;
 import com.fin10.android.mywallpaper.widget.GridSpacingItemDecoration;
 
 import org.greenrobot.eventbus.EventBus;
@@ -38,9 +41,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class WallpaperListFragment extends Fragment implements OnItemEventListener, View.OnClickListener {
+public final class WallpaperListFragment extends Fragment implements OnItemEventListener, View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
 
     private View mEmptyView;
+    private View mLoadingView;
+    private SwipeRefreshLayout mRefreshLayout;
     private WallpaperListAdapter mAdapter;
     private ActionMode mActionMode;
     private Dialog mDeleteDialog;
@@ -117,6 +122,10 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         public void onDestroyActionMode(ActionMode actionMode) {
             mAdapter.setSelectionMode(false);
             mActionMode = null;
+
+            if (SettingsFragment.isSyncEnabled(getActivity())) {
+                mRefreshLayout.setEnabled(true);
+            }
         }
     };
 
@@ -146,10 +155,12 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_wallpaper_list, container, false);
+        EventBus.getDefault().register(this);
 
         StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         mAdapter = new WallpaperListAdapter(this);
 
+        mLoadingView = root.findViewById(R.id.loading_view);
         mEmptyView = root.findViewById(R.id.empty_view);
         mEmptyView.setVisibility(mAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
         View discoveryButton = mEmptyView.findViewById(R.id.discovery_button);
@@ -163,13 +174,32 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
         mAdapter.registerAdapterDataObserver(mObserver);
 
+        mRefreshLayout = (SwipeRefreshLayout) root.findViewById(R.id.swipe_layout);
+        mRefreshLayout.setColorSchemeResources(R.color.primary);
+        mRefreshLayout.setOnRefreshListener(this);
+
+        if (SettingsFragment.isSyncEnabled(getActivity())) {
+            SyncScheduler.sync(getActivity());
+            mRefreshLayout.setEnabled(true);
+            mLoadingView.setVisibility(View.VISIBLE);
+        } else {
+            mRefreshLayout.setEnabled(false);
+            mLoadingView.setVisibility(View.GONE);
+        }
+
         return root;
     }
-
 
     @Override
     public void onResume() {
         super.onResume();
+        if (SettingsFragment.isSyncEnabled(getActivity())) {
+            SyncScheduler.sync(getActivity());
+            mRefreshLayout.setEnabled(true);
+        } else {
+            mRefreshLayout.setEnabled(false);
+        }
+
         mAdapter.notifyDataSetChanged();
         int count = mAdapter.getItemCount();
         if (count == 0) {
@@ -182,6 +212,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        EventBus.getDefault().unregister(this);
         mAdapter.clear();
         mAdapter.unregisterAdapterDataObserver(mObserver);
     }
@@ -204,6 +235,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         Log.d("[%d] onItemLongClick", position);
         if (!mAdapter.isSelectionMode()) {
             mAdapter.setSelectionMode(true);
+            mRefreshLayout.setEnabled(false);
             mActionMode = getActivity().startActionMode(mCallback);
             onItemClick(itemView, position);
         }
@@ -217,6 +249,26 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
             case R.id.discovery_button:
                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/search?q=wallpaper&tbm=isch")));
                 break;
+        }
+    }
+
+    @Override
+    public void onRefresh() {
+        SyncScheduler.sync(getActivity());
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onSyncEvent(@NonNull SyncScheduler.SyncEvent event) {
+        Log.d("[onSyncEvent] %b", event.success);
+        mLoadingView.setVisibility(View.GONE);
+        mRefreshLayout.setRefreshing(false);
+
+        mAdapter.notifyDataSetChanged();
+        int count = mAdapter.getItemCount();
+        if (count == 0) {
+            mEmptyView.setVisibility(View.VISIBLE);
+        } else if (mEmptyView.getVisibility() == View.VISIBLE) {
+            mEmptyView.setVisibility(View.GONE);
         }
     }
 

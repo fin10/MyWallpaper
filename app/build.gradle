@@ -35,12 +35,12 @@ dependencies {
     compile 'com.android.support:design:24.0.0'
     compile 'com.android.support:support-v13:24.0.0'
     compile 'org.greenrobot:eventbus:3.0.0'
-    apt "com.github.Raizlabs.DBFlow:dbflow-processor:3.0.1"
+    apt "com.github.Raizlabs.DBFlow:dbflow-processor:3.1.1"
     // use kapt for kotlin apt
-    compile 'com.github.Raizlabs.DBFlow:dbflow-core:3.0.1'
-    compile 'com.github.Raizlabs.DBFlow:dbflow:3.0.1'
+    compile 'com.github.Raizlabs.DBFlow:dbflow-core:3.1.1'
+    compile 'com.github.Raizlabs.DBFlow:dbflow:3.1.1'
     // kotlin extensions
-    compile 'com.github.Raizlabs.DBFlow:dbflow-kotlinextensions:3.0.1'
+    compile 'com.github.Raizlabs.DBFlow:dbflow-kotlinextensions:3.1.1'
 
     compile 'com.google.android.gms:play-services-auth:9.2.0'
     compile 'com.google.android.gms:play-services-drive:9.2.0'

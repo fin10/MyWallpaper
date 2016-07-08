@@ -35,13 +35,13 @@ public final class WallpaperModelTest {
 
     @Test
     public void testAddModel() throws Exception {
-        WallpaperModel model = WallpaperModel.addModel("dummy_source", Bitmap.createBitmap(10, 10, Bitmap.Config.ALPHA_8));
+        WallpaperModel model = WallpaperModel.addModel(Bitmap.createBitmap(10, 10, Bitmap.Config.ALPHA_8));
         Assert.assertNotNull(model);
     }
 
     @Test
     public void testGetModels() throws Exception {
-        WallpaperModel model = WallpaperModel.addModel("dummy_source", Bitmap.createBitmap(10, 10, Bitmap.Config.ALPHA_8));
+        WallpaperModel model = WallpaperModel.addModel(Bitmap.createBitmap(10, 10, Bitmap.Config.ALPHA_8));
         Assert.assertNotNull(model);
 
         List<WallpaperModel> models = WallpaperModel.getLocalModels();
@@ -50,7 +50,7 @@ public final class WallpaperModelTest {
 
     @Test
     public void testRemoveModel() throws Exception {
-        WallpaperModel model = WallpaperModel.addModel("dummy_source", Bitmap.createBitmap(10, 10, Bitmap.Config.ALPHA_8));
+        WallpaperModel model = WallpaperModel.addModel(Bitmap.createBitmap(10, 10, Bitmap.Config.ALPHA_8));
         Assert.assertNotNull(model);
 
         List<WallpaperModel> models = WallpaperModel.getLocalModels();
@@ -63,7 +63,7 @@ public final class WallpaperModelTest {
 
     @Test
     public void testGetLocalModels() throws Exception {
-        WallpaperModel model = WallpaperModel.addModel("dummy_source", Bitmap.createBitmap(10, 10, Bitmap.Config.ALPHA_8));
+        WallpaperModel model = WallpaperModel.addModel(Bitmap.createBitmap(10, 10, Bitmap.Config.ALPHA_8));
         List<WallpaperModel> models = WallpaperModel.getLocalModels();
         Assert.assertEquals(model, models.get(0));
     }

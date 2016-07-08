@@ -15,10 +15,12 @@ import android.text.TextUtils;
 
 import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.R;
+import com.fin10.android.mywallpaper.model.SyncScheduler;
 
 public final class SettingsFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener {
 
     private static final int REQUEST_CODE_LOGIN = 1;
+    private static final int REQUEST_CODE_LOGOUT = 2;
 
     public static void setTutorialEnabled(@NonNull Context context, boolean enabled) {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
@@ -33,6 +35,11 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
     public static void setAutoChangeEnabled(@NonNull Context context, boolean enabled) {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
         pref.edit().putBoolean(context.getString(R.string.pref_key_auto_change_enabled), enabled).apply();
+    }
+
+    public static boolean isSyncEnabled(@NonNull Context context) {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+        return pref.getBoolean(context.getString(R.string.pref_key_sync_enabled), false);
     }
 
     public static boolean isAutoChangeEnabled(@NonNull Context context) {
@@ -85,11 +92,16 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
         Log.d("[onActivityResult] requestCode:%d, resultCode:%d", requestCode, resultCode);
         switch (requestCode) {
             case REQUEST_CODE_LOGIN: {
-                if (resultCode != Activity.RESULT_OK) {
+                if (resultCode == Activity.RESULT_OK) {
+                    SyncScheduler.start(getActivity());
+                } else {
                     SwitchPreference pref = (SwitchPreference) findPreference(getString(R.string.pref_key_sync_enabled));
                     pref.setChecked(false);
                 }
                 break;
+            }
+            case REQUEST_CODE_LOGOUT: {
+                SyncScheduler.stop(getActivity());
             }
         }
     }
@@ -108,7 +120,7 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
         } else if (TextUtils.equals(key, getString(R.string.pref_key_sync_enabled))) {
             boolean value = (boolean) newValue;
             if (value) LoginActivity.login(this, REQUEST_CODE_LOGIN);
-            else LoginActivity.logout(getActivity());
+            else LoginActivity.logout(this, REQUEST_CODE_LOGOUT);
         }
 
         return true;

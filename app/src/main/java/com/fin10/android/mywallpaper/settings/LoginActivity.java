@@ -2,7 +2,6 @@ package com.fin10.android.mywallpaper.settings;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -12,6 +11,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
 import com.fin10.android.mywallpaper.Log;
+import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.Utils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -34,16 +34,17 @@ public final class LoginActivity extends AppCompatActivity implements GoogleApiC
         fragment.startActivityForResult(intent, requestCode);
     }
 
-    static void logout(@NonNull Context context) {
-        Intent intent = new Intent(context, LoginActivity.class);
+    static void logout(@NonNull Fragment fragment, int requestCode) {
+        Intent intent = new Intent(fragment.getActivity(), LoginActivity.class);
         intent.setAction(INTENT_ACTION_LOGOUT);
-        context.startActivity(intent);
+        fragment.startActivityForResult(intent, requestCode);
     }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         Log.d("[onCreate]");
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_login);
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(Drive.API)
                 .addScope(Drive.SCOPE_FILE)
@@ -97,6 +98,7 @@ public final class LoginActivity extends AppCompatActivity implements GoogleApiC
             mGoogleApiClient.unregisterConnectionCallbacks(this);
             mGoogleApiClient.unregisterConnectionFailedListener(this);
             mGoogleApiClient.clearDefaultAccountAndReconnect();
+            setResult(RESULT_OK);
         }
 
         finish();

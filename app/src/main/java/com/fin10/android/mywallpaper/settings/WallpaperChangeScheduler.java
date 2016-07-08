@@ -18,7 +18,7 @@ public final class WallpaperChangeScheduler extends BroadcastReceiver {
     public static void start(@NonNull Context context, long interval) {
         Log.d("interval:%d", interval);
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + interval, interval, createOperation(context));
+        am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + interval, interval, createOperation(context));
     }
 
     public static void stop(@NonNull Context context) {
