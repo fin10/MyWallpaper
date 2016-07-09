@@ -44,7 +44,6 @@ import java.util.List;
 public final class WallpaperListFragment extends Fragment implements OnItemEventListener, View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
 
     private View mEmptyView;
-    private View mLoadingView;
     private SwipeRefreshLayout mRefreshLayout;
     private WallpaperListAdapter mAdapter;
     private ActionMode mActionMode;
@@ -160,7 +159,6 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         mAdapter = new WallpaperListAdapter(this);
 
-        mLoadingView = root.findViewById(R.id.loading_view);
         mEmptyView = root.findViewById(R.id.empty_view);
         mEmptyView.setVisibility(mAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
         View discoveryButton = mEmptyView.findViewById(R.id.discovery_button);
@@ -181,10 +179,8 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         if (PreferenceUtils.isSyncEnabled(getActivity())) {
             SyncScheduler.sync(getActivity());
             mRefreshLayout.setEnabled(true);
-            mLoadingView.setVisibility(View.VISIBLE);
         } else {
             mRefreshLayout.setEnabled(false);
-            mLoadingView.setVisibility(View.GONE);
         }
 
         return root;
@@ -260,7 +256,6 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onSyncEvent(@NonNull SyncScheduler.SyncEvent event) {
         Log.d("[onSyncEvent] %b", event.success);
-        mLoadingView.setVisibility(View.GONE);
         mRefreshLayout.setRefreshing(false);
 
         mAdapter.notifyDataSetChanged();
@@ -431,6 +426,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                 Glide.with(itemView.getContext())
                         .load(model.getImagePath())
                         .centerCrop()
+                        .dontAnimate()
                         .into((ImageView) itemView.getTag(R.id.image_view));
 
                 View markerView = (View) itemView.getTag(R.id.marker_view);
