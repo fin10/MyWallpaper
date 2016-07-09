@@ -96,6 +96,14 @@ public final class WallpaperModel extends BaseModel {
     }
 
     @Nullable
+    static WallpaperModel getModel(long id) {
+        return SQLite.select()
+                .from(WallpaperModel.class)
+                .where(WallpaperModel_Table._id.eq(id))
+                .querySingle();
+    }
+
+    @Nullable
     static WallpaperModel getModel(@NonNull String source) {
         return SQLite.select()
                 .from(WallpaperModel.class)

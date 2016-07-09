@@ -33,7 +33,10 @@ import java.util.Set;
 public final class SyncScheduler {
 
     private static final String INTENT_ACTION_SYNC = "sync";
+    private static final String INTENT_ACTION_UPLOAD = "upload";
     private static final String INTENT_ACTION_DISMISS = "dismiss";
+    private static final String EXTRA_MODEL_ID = "extra_model_id";
+
     private static final int JOB_ID = 1;
 
     public static void sync(@NonNull Context context) {
@@ -42,6 +45,12 @@ public final class SyncScheduler {
         context.startService(intent);
     }
 
+    public static void upload(@NonNull Context context, @NonNull WallpaperModel model) {
+        Intent intent = new Intent(context, SyncService.class);
+        intent.setAction(INTENT_ACTION_UPLOAD);
+        intent.putExtra(EXTRA_MODEL_ID, model.getId());
+        context.startService(intent);
+    }
 
     public static void dismiss(@NonNull Context context, @NonNull List<WallpaperModel> models) {
         Set<String> items = PreferenceUtils.getRemovedModels(context);
@@ -77,7 +86,7 @@ public final class SyncScheduler {
     public static final class SyncService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
         private GoogleApiClient mGoogleApiClient;
-        private String mAction;
+        private Intent mIntent;
 
         @Override
         public void onCreate() {
@@ -96,7 +105,7 @@ public final class SyncScheduler {
 
         @Override
         public int onStartCommand(Intent intent, int flags, int startId) {
-            mAction = intent.getAction();
+            mIntent = intent;
             mGoogleApiClient.connect();
             return START_NOT_STICKY;
         }
@@ -113,16 +122,16 @@ public final class SyncScheduler {
         @Override
         public void onConnected(@Nullable Bundle bundle) {
             Log.d("[onConnected]");
+            final String action = mIntent.getAction();
             new AsyncTask<Void, Void, Boolean>() {
 
                 @Override
                 protected Boolean doInBackground(Void... voids) {
                     DriveApiHelper.sync(mGoogleApiClient);
-                    if (INTENT_ACTION_SYNC.equals(mAction)) {
+                    if (INTENT_ACTION_SYNC.equals(action)) {
                         List<WallpaperModel> models = WallpaperModel.getLocalModels();
                         for (WallpaperModel model : models) {
                             String id = DriveApiHelper.upload(mGoogleApiClient, model);
-                            Log.d("id:%s", id);
                             if (!TextUtils.isEmpty(id)) {
                                 model.mSource = id;
                                 model.update();
@@ -139,7 +148,18 @@ public final class SyncScheduler {
                                 }
                             }
                         }
-                    } else if (INTENT_ACTION_DISMISS.equals(mAction)) {
+                    } else if (INTENT_ACTION_UPLOAD.equals(action)) {
+                        long modelId = mIntent.getLongExtra(EXTRA_MODEL_ID, -1);
+                        Log.d("modelId:%d", modelId);
+                        WallpaperModel model = WallpaperModel.getModel(modelId);
+                        if (model != null) {
+                            String id = DriveApiHelper.upload(mGoogleApiClient, model);
+                            if (!TextUtils.isEmpty(id)) {
+                                model.mSource = id;
+                                model.update();
+                            }
+                        }
+                    } else if (INTENT_ACTION_DISMISS.equals(action)) {
                         Set<String> removed = PreferenceUtils.getRemovedModels(getBaseContext());
                         Log.d("removed:%d", removed.size());
                         DriveApiHelper.dismiss(mGoogleApiClient, removed);
