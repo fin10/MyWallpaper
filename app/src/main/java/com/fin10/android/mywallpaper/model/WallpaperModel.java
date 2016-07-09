@@ -207,6 +207,15 @@ public final class WallpaperModel extends BaseModel {
         return (int) (mId ^ (mId >>> 32));
     }
 
+    @NonNull
+    public String getDriveId() {
+        if (mSource.startsWith("http") || mSource.startsWith("content:") || mSource.startsWith("file:")) {
+            return "";
+        }
+
+        return mSource;
+    }
+
     public static final class AddEvent {
 
         @NonNull

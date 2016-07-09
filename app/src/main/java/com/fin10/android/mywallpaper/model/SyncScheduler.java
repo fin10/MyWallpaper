@@ -8,6 +8,7 @@ import android.app.job.JobService;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -18,6 +19,7 @@ import android.text.TextUtils;
 import android.text.format.DateUtils;
 
 import com.fin10.android.mywallpaper.Log;
+import com.fin10.android.mywallpaper.settings.PreferenceUtils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 
@@ -26,13 +28,30 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.List;
+import java.util.Set;
 
 public final class SyncScheduler {
 
+    private static final String INTENT_ACTION_SYNC = "sync";
+    private static final String INTENT_ACTION_DISMISS = "dismiss";
     private static final int JOB_ID = 1;
 
     public static void sync(@NonNull Context context) {
         Intent intent = new Intent(context, SyncService.class);
+        intent.setAction(INTENT_ACTION_SYNC);
+        context.startService(intent);
+    }
+
+
+    public static void dismiss(@NonNull Context context, @NonNull List<WallpaperModel> models) {
+        Set<String> items = PreferenceUtils.getRemovedModels(context);
+        for (WallpaperModel model : models) {
+            if (!TextUtils.isEmpty(model.getDriveId())) items.add(model.getDriveId());
+        }
+        PreferenceUtils.setRemovedModel(context, items);
+
+        Intent intent = new Intent(context, SyncService.class);
+        intent.setAction(INTENT_ACTION_DISMISS);
         context.startService(intent);
     }
 
@@ -43,7 +62,6 @@ public final class SyncScheduler {
                 .setPeriodic(DateUtils.DAY_IN_MILLIS)
                 .setRequiresCharging(true)
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED)
-                .setOverrideDeadline(0)
                 .build();
 
         JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
@@ -59,6 +77,7 @@ public final class SyncScheduler {
     public static final class SyncService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
         private GoogleApiClient mGoogleApiClient;
+        private String mAction;
 
         @Override
         public void onCreate() {
@@ -77,6 +96,7 @@ public final class SyncScheduler {
 
         @Override
         public int onStartCommand(Intent intent, int flags, int startId) {
+            mAction = intent.getAction();
             mGoogleApiClient.connect();
             return START_NOT_STICKY;
         }
@@ -98,21 +118,32 @@ public final class SyncScheduler {
                 @Override
                 protected Boolean doInBackground(Void... voids) {
                     DriveApiHelper.sync(mGoogleApiClient);
-
-                    List<WallpaperModel> models = WallpaperModel.getLocalModels();
-                    for (WallpaperModel model : models) {
-                        String id = DriveApiHelper.upload(mGoogleApiClient, model);
-                        Log.d("id:%s", id);
-                        if (!TextUtils.isEmpty(id)) {
-                            model.mSource = id;
-                            model.update();
+                    if (INTENT_ACTION_SYNC.equals(mAction)) {
+                        List<WallpaperModel> models = WallpaperModel.getLocalModels();
+                        for (WallpaperModel model : models) {
+                            String id = DriveApiHelper.upload(mGoogleApiClient, model);
+                            Log.d("id:%s", id);
+                            if (!TextUtils.isEmpty(id)) {
+                                model.mSource = id;
+                                model.update();
+                            }
                         }
-                    }
 
-                    List<Pair<String, String>> ids = DriveApiHelper.getWallpaperIds(mGoogleApiClient);
-                    for (Pair<String, String> id : ids) {
-                        WallpaperModel model = WallpaperModel.getModel(id.first);
-                        if (model == null) DriveApiHelper.download(mGoogleApiClient, id.second);
+                        List<Pair<String, String>> ids = DriveApiHelper.getWallpaperIds(mGoogleApiClient);
+                        for (Pair<String, String> id : ids) {
+                            WallpaperModel model = WallpaperModel.getModel(id.first);
+                            if (model == null) {
+                                Bitmap bitmap = DriveApiHelper.download(mGoogleApiClient, id.second);
+                                if (bitmap != null) {
+                                    WallpaperModel.addModel(id.first, bitmap);
+                                }
+                            }
+                        }
+                    } else if (INTENT_ACTION_DISMISS.equals(mAction)) {
+                        Set<String> removed = PreferenceUtils.getRemovedModels(getBaseContext());
+                        Log.d("removed:%d", removed.size());
+                        DriveApiHelper.dismiss(mGoogleApiClient, removed);
+                        PreferenceUtils.clearRemovedModels(getBaseContext());
                     }
 
                     return true;

@@ -30,9 +30,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 final class DriveApiHelper {
 
@@ -188,22 +190,62 @@ final class DriveApiHelper {
         }
     }
 
-    static void download(@NonNull GoogleApiClient googleApiClient, @NonNull String id) {
+    @Nullable
+    static Bitmap download(@NonNull GoogleApiClient googleApiClient, @NonNull String id) {
         Log.d("%s", id);
         DriveId driveId = DriveId.decodeFromString(id);
         DriveFile driveFile = driveId.asDriveFile();
         DriveApi.DriveContentsResult contentsResult = driveFile.open(googleApiClient, DriveFile.MODE_READ_ONLY, null).await();
         if (!contentsResult.getStatus().isSuccess()) {
             Log.e(contentsResult.getStatus().toString());
-            return;
+            return null;
         }
 
-        Bitmap bitmap = BitmapFactory.decodeStream(contentsResult.getDriveContents().getInputStream());
-        WallpaperModel.addModel(driveId.toInvariantString(), bitmap);
+        InputStream is = contentsResult.getDriveContents().getInputStream();
+        try {
+            return BitmapFactory.decodeStream(is);
+        } finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     static void sync(@NonNull GoogleApiClient googleApiClient) {
         Status status = Drive.DriveApi.requestSync(googleApiClient).await();
         Log.d(status.toString());
+    }
+
+    static boolean dismiss(@NonNull GoogleApiClient googleApiClient, @NonNull Set<String> ids) {
+        DriveFolder root = getTargetFolder(googleApiClient, TARGET_FOLDER_NAME);
+        if (root == null) return false;
+
+        DriveApi.MetadataBufferResult children = root.queryChildren(googleApiClient,
+                new Query.Builder()
+                        .addFilter(Filters.eq(SearchableField.TRASHED, false))
+                        .build())
+                .await();
+        if (!children.getStatus().isSuccess()) {
+            Log.e(children.getStatus().toString());
+            return false;
+        }
+
+        MetadataBuffer buffer = children.getMetadataBuffer();
+        try {
+            for (Metadata data : buffer) {
+                Log.d("[%s] getWebContentLink:%s", data.getTitle(), data.getWebContentLink());
+                DriveId driveId = data.getDriveId();
+                if (ids.contains(driveId.toInvariantString())) {
+                    Status result = driveId.asDriveFile().delete(googleApiClient).await();
+                    Log.d(result.toString());
+                }
+            }
+
+            return true;
+        } finally {
+            buffer.release();
+        }
     }
 }

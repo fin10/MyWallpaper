@@ -150,6 +150,7 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
         public int onStartCommand(Intent intent, int flags, int startId) {
             if (intent == null) {
                 Log.e("[%d] the intent is null.", startId);
+                stopSelf();
                 return Service.START_NOT_STICKY;
             }
 
@@ -157,6 +158,7 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
             Log.d("uri:%s", uri);
             if (uri == null) {
                 Log.e("[%d] the intent has no uri.", startId);
+                stopSelf();
                 return Service.START_NOT_STICKY;
             }
 
@@ -195,6 +197,7 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
                                                 .notify(uri.hashCode(), createFailedNotification(getBaseContext(), uri));
                                         Toast.makeText(getBaseContext(), R.string.failed_to_download, Toast.LENGTH_SHORT).show();
                                     }
+                                    stopSelf();
                                 }
                             }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                         }
@@ -206,6 +209,7 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
                             NotificationManagerCompat.from(getBaseContext())
                                     .notify(uri.hashCode(), createFailedNotification(getBaseContext(), uri));
                             Toast.makeText(getBaseContext(), R.string.failed_to_download, Toast.LENGTH_SHORT).show();
+                            stopSelf();
                         }
                     });
 

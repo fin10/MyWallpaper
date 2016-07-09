@@ -96,7 +96,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int which) {
                                         List<WallpaperModel> items = mAdapter.getSelectedItems();
-                                        mAdapter.remove(items);
+                                        mAdapter.remove(getActivity(), new ArrayList<>(items));
 
                                         getActivity().runOnUiThread(new Runnable() {
                                             @Override
@@ -393,10 +393,13 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
             return mSelectedModels;
         }
 
-        public void remove(@NonNull List<WallpaperModel> models) {
-            List<WallpaperModel> copy = new ArrayList<>(models);
-            for (WallpaperModel model : copy) {
+        public void remove(@NonNull Context context, @NonNull List<WallpaperModel> models) {
+            for (WallpaperModel model : models) {
                 WallpaperModel.removeModel(model);
+            }
+
+            if (PreferenceUtils.isSyncEnabled(context)) {
+                SyncScheduler.dismiss(context, models);
             }
         }
 
