@@ -1,4 +1,4 @@
-package com.fin10.android.mywallpaper.model;
+package com.fin10.android.mywallpaper.drive;
 
 import android.app.Service;
 import android.app.job.JobInfo;
@@ -19,6 +19,7 @@ import android.text.TextUtils;
 import android.text.format.DateUtils;
 
 import com.fin10.android.mywallpaper.Log;
+import com.fin10.android.mywallpaper.model.WallpaperModel;
 import com.fin10.android.mywallpaper.settings.PreferenceUtils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -129,11 +130,18 @@ public final class SyncScheduler {
                 protected Boolean doInBackground(Void... voids) {
                     DriveApiHelper.sync(mGoogleApiClient);
                     if (INTENT_ACTION_SYNC.equals(action)) {
+                        Set<String> removed = PreferenceUtils.getRemovedModels(getBaseContext());
+                        Log.d("removed:%d", removed.size());
+                        if (!DriveApiHelper.dismiss(mGoogleApiClient, removed)) {
+                            return false;
+                        }
+                        PreferenceUtils.clearRemovedModels(getBaseContext());
+
                         List<WallpaperModel> models = WallpaperModel.getLocalModels();
                         for (WallpaperModel model : models) {
                             String id = DriveApiHelper.upload(mGoogleApiClient, model);
                             if (!TextUtils.isEmpty(id)) {
-                                model.mSource = id;
+                                model.setSource(id);
                                 model.update();
                             }
                         }
@@ -155,14 +163,16 @@ public final class SyncScheduler {
                         if (model != null) {
                             String id = DriveApiHelper.upload(mGoogleApiClient, model);
                             if (!TextUtils.isEmpty(id)) {
-                                model.mSource = id;
+                                model.setSource(id);
                                 model.update();
                             }
                         }
                     } else if (INTENT_ACTION_DISMISS.equals(action)) {
                         Set<String> removed = PreferenceUtils.getRemovedModels(getBaseContext());
                         Log.d("removed:%d", removed.size());
-                        DriveApiHelper.dismiss(mGoogleApiClient, removed);
+                        if (!DriveApiHelper.dismiss(mGoogleApiClient, removed)) {
+                            return false;
+                        }
                         PreferenceUtils.clearRemovedModels(getBaseContext());
                     }
 

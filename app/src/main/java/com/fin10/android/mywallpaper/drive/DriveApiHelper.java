@@ -1,4 +1,4 @@
-package com.fin10.android.mywallpaper.model;
+package com.fin10.android.mywallpaper.drive;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.util.Pair;
 
 import com.fin10.android.mywallpaper.Log;
+import com.fin10.android.mywallpaper.model.WallpaperModel;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.drive.Drive;
@@ -59,7 +60,7 @@ final class DriveApiHelper {
 
         DriveApi.MetadataBufferResult result = folder.queryChildren(googleApiClient,
                 new Query.Builder()
-                        .addFilter(Filters.eq(SearchableField.TITLE, String.valueOf(model.mCreationTime)))
+                        .addFilter(Filters.eq(SearchableField.TITLE, String.valueOf(model.getCreationTime())))
                         .build())
                 .await();
         try {
@@ -69,7 +70,7 @@ final class DriveApiHelper {
             }
 
             if (result.getMetadataBuffer().getCount() != 0) {
-                Log.e("[%d] already exist.", model.mCreationTime);
+                Log.e("[%d] already exist.", model.getCreationTime());
                 return null;
             }
         } finally {
@@ -88,7 +89,7 @@ final class DriveApiHelper {
         BufferedInputStream bis = null;
         BufferedOutputStream bos = null;
         try {
-            bis = new BufferedInputStream(new FileInputStream(new File(model.mImagePath)));
+            bis = new BufferedInputStream(new FileInputStream(new File(model.getImagePath())));
             bos = new BufferedOutputStream(new FileOutputStream(descriptor.getFileDescriptor()));
             byte[] buf = new byte[4096];
             bis.read(buf);
@@ -107,7 +108,7 @@ final class DriveApiHelper {
         }
 
         MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
-                .setTitle(String.valueOf(model.mCreationTime))
+                .setTitle(String.valueOf(model.getCreationTime()))
                 .setMimeType("image/png")
                 .build();
 
@@ -238,7 +239,7 @@ final class DriveApiHelper {
                 Log.d("[%s] getWebContentLink:%s", data.getTitle(), data.getWebContentLink());
                 DriveId driveId = data.getDriveId();
                 if (ids.contains(driveId.toInvariantString())) {
-                    Status result = driveId.asDriveFile().delete(googleApiClient).await();
+                    Status result = driveId.asDriveFile().trash(googleApiClient).await();
                     Log.d(result.toString());
                 }
             }

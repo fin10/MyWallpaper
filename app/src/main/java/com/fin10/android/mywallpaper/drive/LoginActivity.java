@@ -1,4 +1,4 @@
-package com.fin10.android.mywallpaper.settings;
+package com.fin10.android.mywallpaper.drive;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -16,7 +16,6 @@ import com.fin10.android.mywallpaper.Utils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.drive.Drive;
 
 public final class LoginActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
@@ -28,13 +27,13 @@ public final class LoginActivity extends AppCompatActivity implements GoogleApiC
 
     private GoogleApiClient mGoogleApiClient;
 
-    static void login(@NonNull Fragment fragment, int requestCode) {
+    public static void login(@NonNull Fragment fragment, int requestCode) {
         Intent intent = new Intent(fragment.getActivity(), LoginActivity.class);
         intent.setAction(INTENT_ACTION_LOGIN);
         fragment.startActivityForResult(intent, requestCode);
     }
 
-    static void logout(@NonNull Fragment fragment, int requestCode) {
+    public static void logout(@NonNull Fragment fragment, int requestCode) {
         Intent intent = new Intent(fragment.getActivity(), LoginActivity.class);
         intent.setAction(INTENT_ACTION_LOGOUT);
         fragment.startActivityForResult(intent, requestCode);
@@ -45,13 +44,7 @@ public final class LoginActivity extends AppCompatActivity implements GoogleApiC
         Log.d("[onCreate]");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(Drive.API)
-                .addScope(Drive.SCOPE_FILE)
-                .addScope(Drive.SCOPE_APPFOLDER)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
+        mGoogleApiClient = DriveApiHelper.createGoogleApiClient(this);
     }
 
     @Override

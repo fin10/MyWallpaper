@@ -88,18 +88,18 @@
         </receiver>
 
         <service
-            android:name=".model.SyncScheduler$SyncService"
+            android:name=".drive.SyncScheduler$SyncService"
             android:exported="false"
             />
 
         <service
-            android:name=".model.SyncScheduler$ScheduleService"
+            android:name=".drive.SyncScheduler$ScheduleService"
             android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE"
             />
 
         <activity
-            android:name=".settings.LoginActivity"
+            android:name=".drive.LoginActivity"
             android:exported="false"
             android:theme="@style/TransparentAppTheme"
             />

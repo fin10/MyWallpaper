@@ -10,7 +10,8 @@ import android.text.TextUtils;
 
 import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.R;
-import com.fin10.android.mywallpaper.model.SyncScheduler;
+import com.fin10.android.mywallpaper.drive.LoginActivity;
+import com.fin10.android.mywallpaper.drive.SyncScheduler;
 
 public final class SettingsFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener {
 

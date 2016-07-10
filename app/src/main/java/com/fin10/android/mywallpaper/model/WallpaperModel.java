@@ -43,14 +43,14 @@ public final class WallpaperModel extends BaseModel {
     @Column(name = "user_id", defaultValue = "\"device\"")
     String mUserId;
 
-    @Column(name = "source")
+    @Column(name = "source", setterName = "setSource")
     String mSource;
 
     @Column(name = "image_path", getterName = "getImagePath")
     @NotNull
     String mImagePath;
 
-    @Column(name = "creation_time")
+    @Column(name = "creation_time", getterName = "getCreationTime")
     @NotNull
     long mCreationTime;
 
@@ -85,7 +85,7 @@ public final class WallpaperModel extends BaseModel {
     }
 
     @Nullable
-    static List<WallpaperModel> getLocalModels() {
+    public static List<WallpaperModel> getLocalModels() {
         return SQLite.select()
                 .from(WallpaperModel.class)
                 .where(WallpaperModel_Table.source.like("http%"))
@@ -96,7 +96,7 @@ public final class WallpaperModel extends BaseModel {
     }
 
     @Nullable
-    static WallpaperModel getModel(long id) {
+    public static WallpaperModel getModel(long id) {
         return SQLite.select()
                 .from(WallpaperModel.class)
                 .where(WallpaperModel_Table._id.eq(id))
@@ -104,7 +104,7 @@ public final class WallpaperModel extends BaseModel {
     }
 
     @Nullable
-    static WallpaperModel getModel(@NonNull String source) {
+    public static WallpaperModel getModel(@NonNull String source) {
         return SQLite.select()
                 .from(WallpaperModel.class)
                 .where(WallpaperModel_Table.source.eq(source))
@@ -112,12 +112,12 @@ public final class WallpaperModel extends BaseModel {
     }
 
     @Nullable
-    static WallpaperModel addModel(@NonNull Bitmap bitmap) {
+    public static WallpaperModel addModel(@NonNull Bitmap bitmap) {
         return addModel(null, bitmap);
     }
 
     @Nullable
-    static WallpaperModel addModel(@Nullable String source, @NonNull Bitmap bitmap) {
+    public static WallpaperModel addModel(@Nullable String source, @NonNull Bitmap bitmap) {
         FileOutputStream os = null;
         try {
             final WallpaperModel model = new WallpaperModel();
@@ -162,8 +162,16 @@ public final class WallpaperModel extends BaseModel {
         EventBus.getDefault().post(new RemoveEvent(model.getId()));
     }
 
+    public void setSource(@NonNull String source) {
+        mSource = source;
+    }
+
     public long getId() {
         return mId;
+    }
+
+    public long getCreationTime() {
+        return mCreationTime;
     }
 
     @NonNull

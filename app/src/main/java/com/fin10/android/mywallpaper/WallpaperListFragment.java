@@ -1,4 +1,4 @@
-package com.fin10.android.mywallpaper.list;
+package com.fin10.android.mywallpaper;
 
 import android.app.Dialog;
 import android.app.Fragment;
@@ -25,10 +25,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.fin10.android.mywallpaper.Constants;
-import com.fin10.android.mywallpaper.Log;
-import com.fin10.android.mywallpaper.R;
-import com.fin10.android.mywallpaper.model.SyncScheduler;
+import com.fin10.android.mywallpaper.drive.SyncScheduler;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
 import com.fin10.android.mywallpaper.settings.PreferenceUtils;
 import com.fin10.android.mywallpaper.widget.GridSpacingItemDecoration;

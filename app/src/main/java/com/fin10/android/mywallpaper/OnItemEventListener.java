@@ -1,4 +1,4 @@
-package com.fin10.android.mywallpaper.list;
+package com.fin10.android.mywallpaper;
 
 import android.support.annotation.NonNull;
 import android.view.View;
