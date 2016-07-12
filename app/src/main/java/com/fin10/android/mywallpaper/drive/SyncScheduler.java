@@ -8,7 +8,6 @@ import android.app.job.JobService;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -150,9 +149,9 @@ public final class SyncScheduler {
                         for (Pair<String, String> id : ids) {
                             WallpaperModel model = WallpaperModel.getModel(id.first);
                             if (model == null) {
-                                Bitmap bitmap = DriveApiHelper.download(mGoogleApiClient, id.second);
-                                if (bitmap != null) {
-                                    WallpaperModel.addModel(id.first, bitmap);
+                                String path = DriveApiHelper.getPath(mGoogleApiClient, id.second);
+                                if (!TextUtils.isEmpty(path)) {
+                                    WallpaperModel.addModel(id.first, path);
                                 }
                             }
                         }

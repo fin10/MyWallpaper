@@ -3,13 +3,13 @@ package com.fin10.android.mywallpaper.model;
 import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.XmlResourceParser;
 import android.graphics.Bitmap;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import com.fin10.android.mywallpaper.FileUtils;
 import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.R;
 import com.raizlabs.android.dbflow.annotation.Column;
@@ -22,19 +22,15 @@ import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.raizlabs.android.dbflow.structure.BaseModel;
 
 import org.greenrobot.eventbus.EventBus;
-import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
 @Table(database = WallpaperDatabase.class)
 public final class WallpaperModel extends BaseModel {
-
-    private static String ROOT_PATH;
 
     @Column(name = "_id", getterName = "getId")
     @PrimaryKey(autoincrement = true)
@@ -59,15 +55,6 @@ public final class WallpaperModel extends BaseModel {
 
     public static void init(@NonNull Context context) {
         FlowManager.init(new FlowConfig.Builder(context).build());
-        try (XmlResourceParser parser = context.getResources().getXml(R.xml.filepaths)) {
-            for (; !TextUtils.equals(parser.getName(), "files-path"); parser.next()) ;
-            String path = parser.getAttributeValue(null, "path");
-            ROOT_PATH = context.getFilesDir() + "/" + path;
-            File file = new File(ROOT_PATH);
-            if (!file.exists()) file.mkdir();
-        } catch (XmlPullParserException | IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public static boolean isCurrentWallpaper(@NonNull Context context, @NonNull WallpaperModel model) {
@@ -111,46 +98,34 @@ public final class WallpaperModel extends BaseModel {
                 .querySingle();
     }
 
-    @Nullable
-    public static WallpaperModel addModel(@NonNull Bitmap bitmap) {
-        return addModel(null, bitmap);
+    @NonNull
+    public static WallpaperModel addModel(@Nullable String source, @NonNull String path) {
+        WallpaperModel model = new WallpaperModel();
+        model.mCreationTime = System.currentTimeMillis();
+        model.mImagePath = path;
+        model.mSource = source;
+        model.insert();
+
+        EventBus.getDefault().post(new AddEvent(model));
+
+        return model;
     }
 
     @Nullable
-    public static WallpaperModel addModel(@Nullable String source, @NonNull Bitmap bitmap) {
-        FileOutputStream os = null;
-        try {
-            final WallpaperModel model = new WallpaperModel();
-            model.mCreationTime = System.currentTimeMillis();
-            model.mSource = source;
-
-            File file = new File(ROOT_PATH, model.mCreationTime + ".png");
-            Log.d("file:%s", file);
-            os = new FileOutputStream(file);
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, os);
-            os.flush();
-
-            model.mImagePath = file.getAbsolutePath();
+    public static WallpaperModel addModel(@NonNull Context context, @NonNull Bitmap bitmap) {
+        WallpaperModel model = new WallpaperModel();
+        model.mCreationTime = System.currentTimeMillis();
+        model.mImagePath = FileUtils.write(context, bitmap, model.mCreationTime + ".png");
+        if (!TextUtils.isEmpty(model.mImagePath)) {
             model.insert();
-
             EventBus.getDefault().post(new AddEvent(model));
-
             return model;
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (os != null) os.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
 
         return null;
     }
 
-    public static void removeModel(@NonNull final WallpaperModel model) {
+    public static void removeModel(@NonNull WallpaperModel model) {
         File file = new File(model.getImagePath());
         boolean result = file.delete();
         if (!result) {

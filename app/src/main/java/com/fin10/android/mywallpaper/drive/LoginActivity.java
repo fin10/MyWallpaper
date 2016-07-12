@@ -45,6 +45,8 @@ public final class LoginActivity extends AppCompatActivity implements GoogleApiC
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         mGoogleApiClient = DriveApiHelper.createGoogleApiClient(this);
+        mGoogleApiClient.registerConnectionCallbacks(this);
+        mGoogleApiClient.registerConnectionFailedListener(this);
     }
 
     @Override
@@ -57,6 +59,8 @@ public final class LoginActivity extends AppCompatActivity implements GoogleApiC
     protected void onStop() {
         super.onStop();
         mGoogleApiClient.disconnect();
+        mGoogleApiClient.unregisterConnectionCallbacks(this);
+        mGoogleApiClient.unregisterConnectionFailedListener(this);
     }
 
     @Override

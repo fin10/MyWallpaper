@@ -28,4 +28,6 @@
     <string name="start">Start</string>
     <string name="change_automatically">Change automatically.</string>
     <string name="you_can_change_a_wallpaper_automatically_by_below_settings">You can change a wallpaper automatically by below settings.</string>
+    <string name="synchronize_wallpapers_via_google_drive">Synchronize wallpapers via Google Drive.</string>
+    <string name="backup_and_restore"><![CDATA[Backup & restore]]></string>
 </resources>

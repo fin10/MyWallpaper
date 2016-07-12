@@ -1,13 +1,13 @@
 package com.fin10.android.mywallpaper.drive;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.ParcelFileDescriptor;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.WorkerThread;
 import android.support.v4.util.Pair;
 
+import com.fin10.android.mywallpaper.FileUtils;
 import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -25,13 +25,7 @@ import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -53,6 +47,7 @@ final class DriveApiHelper {
                 .build();
     }
 
+    @WorkerThread
     @Nullable
     static String upload(@NonNull GoogleApiClient googleApiClient, @NonNull WallpaperModel model) {
         DriveFolder folder = getTargetFolder(googleApiClient, TARGET_FOLDER_NAME);
@@ -85,27 +80,8 @@ final class DriveApiHelper {
 
         DriveContents contents = contentsResult.getDriveContents();
         ParcelFileDescriptor descriptor = contents.getParcelFileDescriptor();
-
-        BufferedInputStream bis = null;
-        BufferedOutputStream bos = null;
-        try {
-            bis = new BufferedInputStream(new FileInputStream(new File(model.getImagePath())));
-            bos = new BufferedOutputStream(new FileOutputStream(descriptor.getFileDescriptor()));
-            byte[] buf = new byte[4096];
-            bis.read(buf);
-            do {
-                bos.write(buf);
-            } while (bis.read(buf) != -1);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (bis != null) bis.close();
-                if (bos != null) bos.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        boolean success = FileUtils.write(model.getImagePath(), new FileOutputStream(descriptor.getFileDescriptor()));
+        if (!success) return null;
 
         MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
                 .setTitle(String.valueOf(model.getCreationTime()))
@@ -121,11 +97,13 @@ final class DriveApiHelper {
         return fileResult.getDriveFile().getDriveId().toInvariantString();
     }
 
+    @WorkerThread
     @Nullable
     static DriveFolder getTargetFolder(@NonNull GoogleApiClient googleApiClient, @NonNull String folderName) {
         DriveFolder root = Drive.DriveApi.getRootFolder(googleApiClient);
         DriveApi.MetadataBufferResult result = root.queryChildren(googleApiClient, new Query.Builder()
                 .addFilter(Filters.eq(SearchableField.TITLE, folderName))
+                .addFilter(Filters.eq(SearchableField.TRASHED, false))
                 .build())
                 .await();
 
@@ -147,6 +125,7 @@ final class DriveApiHelper {
         }
     }
 
+    @WorkerThread
     @Nullable
     private static DriveFolder createTargetFolder(@NonNull GoogleApiClient googleApiClient, @NonNull DriveFolder parent, @NonNull String folderName) {
         MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
@@ -161,6 +140,7 @@ final class DriveApiHelper {
         return result.getDriveFolder();
     }
 
+    @WorkerThread
     @NonNull
     static List<Pair<String, String>> getWallpaperIds(@NonNull GoogleApiClient googleApiClient) {
         DriveFolder root = getTargetFolder(googleApiClient, TARGET_FOLDER_NAME);
@@ -191,34 +171,28 @@ final class DriveApiHelper {
         }
     }
 
-    @Nullable
-    static Bitmap download(@NonNull GoogleApiClient googleApiClient, @NonNull String id) {
+    @WorkerThread
+    @NonNull
+    static String getPath(@NonNull GoogleApiClient googleApiClient, @NonNull String id) {
         Log.d("%s", id);
         DriveId driveId = DriveId.decodeFromString(id);
         DriveFile driveFile = driveId.asDriveFile();
         DriveApi.DriveContentsResult contentsResult = driveFile.open(googleApiClient, DriveFile.MODE_READ_ONLY, null).await();
         if (!contentsResult.getStatus().isSuccess()) {
             Log.e(contentsResult.getStatus().toString());
-            return null;
+            return "";
         }
 
-        InputStream is = contentsResult.getDriveContents().getInputStream();
-        try {
-            return BitmapFactory.decodeStream(is);
-        } finally {
-            try {
-                is.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        return FileUtils.write(googleApiClient.getContext(), contentsResult.getDriveContents().getInputStream(), id + ".png");
     }
 
+    @WorkerThread
     static void sync(@NonNull GoogleApiClient googleApiClient) {
         Status status = Drive.DriveApi.requestSync(googleApiClient).await();
         Log.d(status.toString());
     }
 
+    @WorkerThread
     static boolean dismiss(@NonNull GoogleApiClient googleApiClient, @NonNull Set<String> ids) {
         DriveFolder root = getTargetFolder(googleApiClient, TARGET_FOLDER_NAME);
         if (root == null) return false;

@@ -49,10 +49,9 @@
 
         <ImageView
             android:layout_width="240dp"
-            android:layout_height="wrap_content"
+            android:layout_height="220dp"
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
-            android:adjustViewBounds="true"
             android:src="@mipmap/tutorial_1"
             />
     </RelativeLayout>
