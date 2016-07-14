@@ -96,7 +96,7 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
         @NonNull
         private static Notification createDownloadingNotification(@NonNull Context context, @NonNull Uri uri) {
             return new NotificationCompat.Builder(context)
-                    .setSmallIcon(R.mipmap.ic_wallpaper_white_48dp)
+                    .setSmallIcon(R.drawable.ic_wallpaper_white_48dp)
                     .setColor(ContextCompat.getColor(context, R.color.primary))
                     .setCategory(Notification.CATEGORY_PROGRESS)
                     .setContentTitle(context.getString(R.string.downloading_new_wallpaper))
@@ -110,7 +110,7 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
         @NonNull
         private static Notification createDownloadedNotification(@NonNull Context context, @NonNull Bitmap bitmap) {
             return new NotificationCompat.Builder(context)
-                    .setSmallIcon(R.mipmap.ic_wallpaper_white_48dp)
+                    .setSmallIcon(R.drawable.ic_wallpaper_white_48dp)
                     .setColor(ContextCompat.getColor(context, R.color.primary))
                     .setCategory(Notification.CATEGORY_STATUS)
                     .setContentTitle(context.getString(R.string.download_complete))
@@ -125,7 +125,7 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
         @NonNull
         private static Notification createFailedNotification(@NonNull Context context, @NonNull Uri uri) {
             return new NotificationCompat.Builder(context)
-                    .setSmallIcon(R.mipmap.ic_wallpaper_white_48dp)
+                    .setSmallIcon(R.drawable.ic_wallpaper_white_48dp)
                     .setColor(ContextCompat.getColor(context, R.color.primary))
                     .setCategory(Notification.CATEGORY_ERROR)
                     .setContentTitle(context.getString(R.string.failed_to_download))

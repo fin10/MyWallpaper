@@ -4,7 +4,7 @@
 
     <item
         android:id="@+id/menu_item_settings"
-        android:icon="@mipmap/ic_settings_white_24dp"
+        android:icon="@drawable/ic_settings_white_24dp"
         android:showAsAction="never"
         android:title="@string/settings"
         tools:ignore="AppCompatResource"/>

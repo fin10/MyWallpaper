@@ -52,7 +52,7 @@
             android:layout_height="220dp"
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
-            android:src="@mipmap/tutorial_1"
+            android:src="@drawable/tutorial_1"
             />
     </RelativeLayout>
 </LinearLayout>
