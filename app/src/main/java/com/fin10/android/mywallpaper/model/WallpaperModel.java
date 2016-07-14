@@ -4,11 +4,14 @@ import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.fin10.android.mywallpaper.FileUtils;
 import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.R;
@@ -24,10 +27,9 @@ import com.raizlabs.android.dbflow.structure.BaseModel;
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @Table(database = WallpaperDatabase.class)
 public final class WallpaperModel extends BaseModel {
@@ -63,7 +65,7 @@ public final class WallpaperModel extends BaseModel {
         return id == model.getId();
     }
 
-    @Nullable
+    @NonNull
     public static List<WallpaperModel> getModels() {
         return SQLite.select()
                 .from(WallpaperModel.class)
@@ -71,7 +73,7 @@ public final class WallpaperModel extends BaseModel {
                 .queryList();
     }
 
-    @Nullable
+    @NonNull
     public static List<WallpaperModel> getLocalModels() {
         return SQLite.select()
                 .from(WallpaperModel.class)
@@ -158,28 +160,46 @@ public final class WallpaperModel extends BaseModel {
         return mAppliedCount;
     }
 
-    public void setAsWallpaper(@NonNull Context context) {
-        InputStream is = null;
-        try {
-            is = new FileInputStream(mImagePath);
-            WallpaperManager.getInstance(context).setStream(is);
-            ++mAppliedCount;
-            update();
+    public void setAsWallpaper(@NonNull final Context context) {
+        new AsyncTask<Void, Void, Boolean>() {
 
-            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-            pref.edit().putLong(context.getString(R.string.pref_key_current_wallpaper_id), mId).apply();
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                try {
+                    WallpaperManager wm = WallpaperManager.getInstance(context);
+                    int width = wm.getDesiredMinimumWidth();
+                    int height = wm.getDesiredMinimumHeight();
+                    Log.d("minimum:%d,%d", width, height);
+                    Bitmap bitmap = Glide.with(context)
+                            .load(mImagePath)
+                            .asBitmap()
+                            .diskCacheStrategy(DiskCacheStrategy.NONE)
+                            .into(width, height)
+                            .get();
+                    wm.setBitmap(bitmap);
+                    return true;
+                } catch (IOException | InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                }
 
-            EventBus.getDefault().post(new SetAsWallpaperEvent(mId));
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (is != null) is.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+                return false;
             }
-        }
+
+            @Override
+            protected void onPostExecute(Boolean result) {
+                if (result) {
+                    ++mAppliedCount;
+                    update();
+
+                    SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+                    pref.edit().putLong(context.getString(R.string.pref_key_current_wallpaper_id), mId).apply();
+
+                    EventBus.getDefault().post(new SetAsWallpaperEvent(mId));
+                } else {
+                    EventBus.getDefault().post(new SetAsWallpaperEvent(-1));
+                }
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     @Override

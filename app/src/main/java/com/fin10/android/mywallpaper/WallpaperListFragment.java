@@ -2,6 +2,7 @@ package com.fin10.android.mywallpaper;
 
 import android.app.Dialog;
 import android.app.Fragment;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -124,7 +125,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
             }
         }
     };
-
+    private ProgressDialog mLoadingDialog;
     private RecyclerView.AdapterDataObserver mObserver = new RecyclerView.AdapterDataObserver() {
 
         @Override
@@ -219,7 +220,19 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                 mActionMode.setTitle(String.valueOf(mAdapter.getSelectedItems().size()));
             }
         } else {
-            mAdapter.setMarked(getActivity(), position);
+            try {
+                WallpaperModel model = mAdapter.mModels.get(position);
+                model.setAsWallpaper(getActivity());
+                if (mLoadingDialog == null) {
+                    mLoadingDialog = new ProgressDialog(getActivity());
+                    mLoadingDialog.setMessage(getString(R.string.changing));
+                    mLoadingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                    mLoadingDialog.setIndeterminate(true);
+                }
+                mLoadingDialog.show();
+            } catch (IndexOutOfBoundsException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -264,13 +277,18 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         }
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onWallpaperChanged(@NonNull WallpaperModel.SetAsWallpaperEvent event) {
+        mAdapter.notifyDataSetChanged();
+        mLoadingDialog.dismiss();
+    }
+
     private static final class WallpaperListAdapter extends RecyclerView.Adapter {
 
         private final List<WallpaperModel> mModels;
         private final List<WallpaperModel> mSelectedModels = new ArrayList<>();
         private final OnItemEventListener mListener;
 
-        private long mMarkedModelId = -1;
         private boolean mSelectionMode = false;
 
         public WallpaperListAdapter(@Nullable OnItemEventListener listener) {
@@ -292,7 +310,6 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             WallpaperModel model = mModels.get(position);
             boolean marked = WallpaperModel.isCurrentWallpaper(holder.itemView.getContext(), model);
-            if (marked) mMarkedModelId = model.getId();
             if (mSelectionMode) {
                 ((WallpaperViewHolder) holder).setModel(model, marked, mSelectedModels.contains(model));
             } else {
@@ -331,31 +348,6 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
             }
         }
 
-        @Subscribe(threadMode = ThreadMode.MAIN)
-        public void onWallpaperChanged(@NonNull WallpaperModel.SetAsWallpaperEvent event) {
-            if (mMarkedModelId > 0) {
-                int position = 0;
-                for (WallpaperModel model : mModels) {
-                    if (model.getId() == mMarkedModelId) {
-                        notifyItemChanged(position);
-                        break;
-                    }
-                    ++position;
-                }
-            }
-
-            int position = 0;
-            for (WallpaperModel model : mModels) {
-                if (model.getId() == event.id) {
-                    notifyItemChanged(position);
-                    break;
-                }
-                ++position;
-            }
-
-            mMarkedModelId = position;
-        }
-
         public boolean isSelectionMode() {
             return mSelectionMode;
         }
@@ -365,14 +357,6 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                 mSelectionMode = selectionMode;
                 mSelectedModels.clear();
                 notifyDataSetChanged();
-            }
-        }
-
-        public void setMarked(@NonNull Context context, int position) {
-            WallpaperModel model = mModels.get(position);
-            if (mMarkedModelId != model.getId()) {
-                model.setAsWallpaper(context);
-                mMarkedModelId = model.getId();
             }
         }
 
