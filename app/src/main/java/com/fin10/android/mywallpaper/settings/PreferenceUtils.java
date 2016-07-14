@@ -8,9 +8,6 @@ import android.support.annotation.NonNull;
 
 import com.fin10.android.mywallpaper.R;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public final class PreferenceUtils {
 
     private PreferenceUtils() {
@@ -68,28 +65,5 @@ public final class PreferenceUtils {
         }
 
         return interval;
-    }
-
-    public static void setRemovedModel(@NonNull Context context, @NonNull Set<String> items) {
-        synchronized (PreferenceUtils.class) {
-            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-            pref.edit().putStringSet(context.getString(R.string.pref_key_need_to_remove_items), items).apply();
-        }
-    }
-
-    @NonNull
-    public static Set<String> getRemovedModels(@NonNull Context context) {
-        synchronized (PreferenceUtils.class) {
-            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-            Set<String> result = pref.getStringSet(context.getString(R.string.pref_key_need_to_remove_items), null);
-            return result != null ? new HashSet<>(result) : new HashSet<String>();
-        }
-    }
-
-    public static void clearRemovedModels(@NonNull Context context) {
-        synchronized (PreferenceUtils.class) {
-            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-            pref.edit().remove(context.getString(R.string.pref_key_need_to_remove_items)).apply();
-        }
     }
 }

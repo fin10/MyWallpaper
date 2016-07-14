@@ -29,7 +29,6 @@ import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 final class DriveApiHelper {
 
@@ -94,7 +93,9 @@ final class DriveApiHelper {
             return null;
         }
 
-        return fileResult.getDriveFile().getDriveId().toInvariantString();
+        String id = fileResult.getDriveFile().getDriveId().toInvariantString();
+        Log.d("[%d] uploaded %s", model.getCreationTime(), id);
+        return id;
     }
 
     @WorkerThread
@@ -193,7 +194,7 @@ final class DriveApiHelper {
     }
 
     @WorkerThread
-    static boolean dismiss(@NonNull GoogleApiClient googleApiClient, @NonNull Set<String> ids) {
+    static boolean dismiss(@NonNull GoogleApiClient googleApiClient, @NonNull List<String> ids) {
         DriveFolder root = getTargetFolder(googleApiClient, TARGET_FOLDER_NAME);
         if (root == null) return false;
 
@@ -210,7 +211,6 @@ final class DriveApiHelper {
         MetadataBuffer buffer = children.getMetadataBuffer();
         try {
             for (Metadata data : buffer) {
-                Log.d("[%s] getWebContentLink:%s", data.getTitle(), data.getWebContentLink());
                 DriveId driveId = data.getDriveId();
                 if (ids.contains(driveId.toInvariantString())) {
                     Status result = driveId.asDriveFile().trash(googleApiClient).await();

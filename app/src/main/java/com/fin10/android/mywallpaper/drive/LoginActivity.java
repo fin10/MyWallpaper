@@ -82,7 +82,7 @@ public final class LoginActivity extends AppCompatActivity implements GoogleApiC
 
     @Override
     public void onBackPressed() {
-        //for ignore
+        //have to ignore
     }
 
     @Override
@@ -111,7 +111,7 @@ public final class LoginActivity extends AppCompatActivity implements GoogleApiC
         Log.d("[onConnectionFailed] %s", connectionResult.toString());
         String action = getIntent().getAction();
         if (INTENT_ACTION_LOGIN.equals(action)) {
-            if (connectionResult.hasResolution()) {
+            if (connectionResult.hasResolution() && connectionResult.getErrorCode() == ConnectionResult.SIGN_IN_REQUIRED) {
                 try {
                     connectionResult.startResolutionForResult(this, REQUEST_CODE_CONNECT);
                     return;

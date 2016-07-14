@@ -41,7 +41,7 @@ public final class WallpaperModel extends BaseModel {
     @Column(name = "user_id", defaultValue = "\"device\"")
     String mUserId;
 
-    @Column(name = "source", setterName = "setSource")
+    @Column(name = "source", setterName = "setSource", getterName = "getSource")
     String mSource;
 
     @Column(name = "image_path", getterName = "getImagePath")
@@ -77,10 +77,15 @@ public final class WallpaperModel extends BaseModel {
     public static List<WallpaperModel> getLocalModels() {
         return SQLite.select()
                 .from(WallpaperModel.class)
-                .where(WallpaperModel_Table.source.like("http%"))
-                .or(WallpaperModel_Table.source.like("content:%"))
-                .or(WallpaperModel_Table.source.like("file:%"))
-                .or(WallpaperModel_Table.source.isNull())
+                .where(WallpaperModel_Table.source.isNull())
+                .queryList();
+    }
+
+    @NonNull
+    public static List<WallpaperModel> getSyncedModels() {
+        return SQLite.select()
+                .from(WallpaperModel.class)
+                .where(WallpaperModel_Table.source.isNotNull())
                 .queryList();
     }
 
@@ -137,10 +142,6 @@ public final class WallpaperModel extends BaseModel {
 
         model.delete();
         EventBus.getDefault().post(new RemoveEvent(model.getId()));
-    }
-
-    public void setSource(@NonNull String source) {
-        mSource = source;
     }
 
     public long getId() {
@@ -219,12 +220,12 @@ public final class WallpaperModel extends BaseModel {
     }
 
     @NonNull
-    public String getDriveId() {
-        if (mSource.startsWith("http") || mSource.startsWith("content:") || mSource.startsWith("file:")) {
-            return "";
-        }
+    public String getSource() {
+        return mSource != null ? mSource : "";
+    }
 
-        return mSource;
+    public void setSource(@NonNull String source) {
+        mSource = source;
     }
 
     public static final class AddEvent {
