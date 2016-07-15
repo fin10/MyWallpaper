@@ -309,7 +309,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             WallpaperModel model = mModels.get(position);
-            boolean marked = WallpaperModel.isCurrentWallpaper(holder.itemView.getContext(), model);
+            boolean marked = PreferenceUtils.isCurrentWallpaper(holder.itemView.getContext(), model.getId());
             if (mSelectionMode) {
                 ((WallpaperViewHolder) holder).setModel(model, marked, mSelectedModels.contains(model));
             } else {

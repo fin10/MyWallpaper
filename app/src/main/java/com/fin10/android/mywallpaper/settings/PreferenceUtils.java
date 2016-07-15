@@ -13,6 +13,16 @@ public final class PreferenceUtils {
     private PreferenceUtils() {
     }
 
+    public static void setCurrentWallpaper(@NonNull Context context, long id) {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+        pref.edit().putLong(context.getString(R.string.pref_key_current_wallpaper_id), id).apply();
+    }
+
+    public static boolean isCurrentWallpaper(@NonNull Context context, long id) {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+        return pref.getLong(context.getString(R.string.pref_key_current_wallpaper_id), -1) == id;
+    }
+
     public static void setTutorialEnabled(@NonNull Context context, boolean enabled) {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
         pref.edit().putBoolean(context.getString(R.string.pref_key_tutorial_enabled), enabled).apply();

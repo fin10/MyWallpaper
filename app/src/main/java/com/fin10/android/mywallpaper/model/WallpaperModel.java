@@ -2,10 +2,8 @@ package com.fin10.android.mywallpaper.model;
 
 import android.app.WallpaperManager;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
-import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -14,7 +12,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.fin10.android.mywallpaper.FileUtils;
 import com.fin10.android.mywallpaper.Log;
-import com.fin10.android.mywallpaper.R;
+import com.fin10.android.mywallpaper.settings.PreferenceUtils;
 import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.NotNull;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
@@ -57,12 +55,6 @@ public final class WallpaperModel extends BaseModel {
 
     public static void init(@NonNull Context context) {
         FlowManager.init(new FlowConfig.Builder(context).build());
-    }
-
-    public static boolean isCurrentWallpaper(@NonNull Context context, @NonNull WallpaperModel model) {
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-        long id = pref.getLong(context.getString(R.string.pref_key_current_wallpaper_id), -1);
-        return id == model.getId();
     }
 
     @NonNull
@@ -191,14 +183,10 @@ public final class WallpaperModel extends BaseModel {
                 if (result) {
                     ++mAppliedCount;
                     update();
-
-                    SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-                    pref.edit().putLong(context.getString(R.string.pref_key_current_wallpaper_id), mId).apply();
-
-                    EventBus.getDefault().post(new SetAsWallpaperEvent(mId));
-                } else {
-                    EventBus.getDefault().post(new SetAsWallpaperEvent(-1));
+                    PreferenceUtils.setCurrentWallpaper(context, mId);
                 }
+
+                EventBus.getDefault().post(new SetAsWallpaperEvent(result ? mId : -1));
             }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }

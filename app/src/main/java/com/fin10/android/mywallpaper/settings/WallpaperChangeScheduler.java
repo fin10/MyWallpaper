@@ -50,7 +50,7 @@ public final class WallpaperChangeScheduler extends BroadcastReceiver {
             Random random = new Random();
             while (count > 1) {
                 WallpaperModel model = models.get(random.nextInt(count));
-                if (!WallpaperModel.isCurrentWallpaper(context, model)) {
+                if (!PreferenceUtils.isCurrentWallpaper(context, model.getId())) {
                     model.setAsWallpaper(context);
                     break;
                 }
