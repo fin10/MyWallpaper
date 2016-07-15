@@ -174,7 +174,7 @@ final class DriveApiHelper {
 
     @WorkerThread
     @NonNull
-    static String getPath(@NonNull GoogleApiClient googleApiClient, @NonNull String id) {
+    static String download(@NonNull GoogleApiClient googleApiClient, @NonNull String id) {
         Log.d("%s", id);
         DriveId driveId = DriveId.decodeFromString(id);
         DriveFile driveFile = driveId.asDriveFile();

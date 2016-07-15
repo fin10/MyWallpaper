@@ -1,6 +1,7 @@
 package com.fin10.android.mywallpaper.model;
 
 import android.graphics.Bitmap;
+import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -16,6 +17,11 @@ import java.util.List;
 public final class WallpaperModelTest {
 
     private boolean initialized = false;
+
+    @NonNull
+    private static Bitmap createTestBitmap() {
+        return Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888);
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -35,13 +41,13 @@ public final class WallpaperModelTest {
 
     @Test
     public void testAddModel() throws Exception {
-        WallpaperModel model = WallpaperModel.addModel(InstrumentationRegistry.getTargetContext(), Bitmap.createBitmap(10, 10, Bitmap.Config.ALPHA_8));
+        WallpaperModel model = WallpaperModel.addModel(InstrumentationRegistry.getTargetContext(), createTestBitmap());
         Assert.assertNotNull(model);
     }
 
     @Test
     public void testGetModels() throws Exception {
-        WallpaperModel model = WallpaperModel.addModel(InstrumentationRegistry.getTargetContext(), Bitmap.createBitmap(10, 10, Bitmap.Config.ALPHA_8));
+        WallpaperModel model = WallpaperModel.addModel(InstrumentationRegistry.getTargetContext(), createTestBitmap());
         Assert.assertNotNull(model);
 
         List<WallpaperModel> models = WallpaperModel.getLocalModels();
@@ -50,7 +56,7 @@ public final class WallpaperModelTest {
 
     @Test
     public void testRemoveModel() throws Exception {
-        WallpaperModel model = WallpaperModel.addModel(InstrumentationRegistry.getTargetContext(), Bitmap.createBitmap(10, 10, Bitmap.Config.ALPHA_8));
+        WallpaperModel model = WallpaperModel.addModel(InstrumentationRegistry.getTargetContext(), createTestBitmap());
         Assert.assertNotNull(model);
 
         List<WallpaperModel> models = WallpaperModel.getLocalModels();
@@ -63,8 +69,17 @@ public final class WallpaperModelTest {
 
     @Test
     public void testGetLocalModels() throws Exception {
-        WallpaperModel model = WallpaperModel.addModel(InstrumentationRegistry.getTargetContext(), Bitmap.createBitmap(10, 10, Bitmap.Config.ALPHA_8));
+        WallpaperModel model = WallpaperModel.addModel(InstrumentationRegistry.getTargetContext(), createTestBitmap());
         List<WallpaperModel> models = WallpaperModel.getLocalModels();
         Assert.assertEquals(model, models.get(0));
+    }
+
+    @Test
+    public void testGetSyncedModels() throws Exception {
+        WallpaperModel model = WallpaperModel.addModel(InstrumentationRegistry.getTargetContext(), createTestBitmap());
+        List<WallpaperModel> models = WallpaperModel.getLocalModels();
+        Assert.assertEquals(model, models.get(0));
+        models = WallpaperModel.getSyncedModels();
+        Assert.assertTrue(models.isEmpty());
     }
 }

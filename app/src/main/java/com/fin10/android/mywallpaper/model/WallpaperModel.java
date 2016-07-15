@@ -106,7 +106,7 @@ public final class WallpaperModel extends BaseModel {
     }
 
     @NonNull
-    public static WallpaperModel addModel(@Nullable String source, @NonNull String path) {
+    public static WallpaperModel addModel(@NonNull String source, @NonNull String path) {
         WallpaperModel model = new WallpaperModel();
         model.mCreationTime = System.currentTimeMillis();
         model.mImagePath = path;

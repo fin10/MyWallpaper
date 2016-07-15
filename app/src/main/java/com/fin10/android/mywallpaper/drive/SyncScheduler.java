@@ -162,7 +162,7 @@ public final class SyncScheduler {
                         for (Pair<String, String> id : ids) {
                             WallpaperModel model = WallpaperModel.getModel(id.first);
                             if (model == null) {
-                                String path = DriveApiHelper.getPath(mGoogleApiClient, id.second);
+                                String path = DriveApiHelper.download(mGoogleApiClient, id.second);
                                 if (!TextUtils.isEmpty(path)) {
                                     WallpaperModel.addModel(id.first, path);
                                 }
