@@ -129,9 +129,10 @@ public final class SyncScheduler {
                 @Override
                 protected Boolean doInBackground(Void... voids) {
                     DriveApiHelper.sync(mGoogleApiClient);
+                    String userId = DriveApiHelper.getUserId(mGoogleApiClient);
                     if (INTENT_ACTION_SYNC.equals(action)) {
                         List<Pair<String, String>> ids = DriveApiHelper.getWallpaperIds(mGoogleApiClient);
-                        List<WallpaperModel> models = WallpaperModel.getSyncedModels();
+                        List<WallpaperModel> models = WallpaperModel.getModels(userId);
                         List<WallpaperModel> removeItems = new ArrayList<>();
                         for (WallpaperModel model : models) {
                             boolean found = false;
@@ -150,22 +151,17 @@ public final class SyncScheduler {
                             Log.d("[%s] removed.", model.getCreationTime());
                         }
 
-                        models = WallpaperModel.getLocalModels();
+                        models = WallpaperModel.getModels(WallpaperModel.UserId.DEVICE);
                         for (WallpaperModel model : models) {
                             String id = DriveApiHelper.upload(mGoogleApiClient, model);
-                            if (!TextUtils.isEmpty(id)) {
-                                model.setSource(id);
-                                model.update();
-                            }
+                            if (!TextUtils.isEmpty(id)) model.update(userId, id);
                         }
 
                         for (Pair<String, String> id : ids) {
                             WallpaperModel model = WallpaperModel.getModel(id.first);
                             if (model == null) {
                                 String path = DriveApiHelper.download(mGoogleApiClient, id.second);
-                                if (!TextUtils.isEmpty(path)) {
-                                    WallpaperModel.addModel(id.first, path);
-                                }
+                                if (!TextUtils.isEmpty(path)) WallpaperModel.addModel(userId, id.first, path);
                             }
                         }
                     } else if (INTENT_ACTION_UPLOAD.equals(action)) {
@@ -174,10 +170,7 @@ public final class SyncScheduler {
                         WallpaperModel model = WallpaperModel.getModel(modelId);
                         if (model != null) {
                             String id = DriveApiHelper.upload(mGoogleApiClient, model);
-                            if (!TextUtils.isEmpty(id)) {
-                                model.setSource(id);
-                                model.update();
-                            }
+                            if (!TextUtils.isEmpty(id)) model.update(userId, id);
                         }
                     } else if (INTENT_ACTION_DISMISS.equals(action)) {
                         List<String> removed = mIntent.getStringArrayListExtra(EXTRA_MODEL_ID_LIST);

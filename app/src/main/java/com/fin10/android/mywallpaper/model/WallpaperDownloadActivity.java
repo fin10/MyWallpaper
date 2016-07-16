@@ -179,7 +179,7 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
 
                                 @Override
                                 protected Boolean doInBackground(Void... voids) {
-                                    WallpaperModel result = WallpaperModel.addModel(getBaseContext(), resource);
+                                    WallpaperModel result = WallpaperModel.addModel(getBaseContext(), uri.toString(), resource);
                                     if (result != null && PreferenceUtils.isSyncEnabled(getBaseContext())) {
                                         SyncScheduler.upload(getBaseContext(), result);
                                     }

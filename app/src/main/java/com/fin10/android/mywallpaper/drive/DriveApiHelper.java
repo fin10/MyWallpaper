@@ -94,13 +94,13 @@ final class DriveApiHelper {
         }
 
         String id = fileResult.getDriveFile().getDriveId().toInvariantString();
-        Log.d("[%d] uploaded %s", model.getCreationTime(), id);
+        Log.d("[upload] %s", id);
         return id;
     }
 
     @WorkerThread
     @Nullable
-    static DriveFolder getTargetFolder(@NonNull GoogleApiClient googleApiClient, @NonNull String folderName) {
+    private static DriveFolder getTargetFolder(@NonNull GoogleApiClient googleApiClient, @NonNull String folderName) {
         DriveFolder root = Drive.DriveApi.getRootFolder(googleApiClient);
         DriveApi.MetadataBufferResult result = root.queryChildren(googleApiClient, new Query.Builder()
                 .addFilter(Filters.eq(SearchableField.TITLE, folderName))
@@ -141,6 +141,12 @@ final class DriveApiHelper {
         return result.getDriveFolder();
     }
 
+    @NonNull
+    static String getUserId(@NonNull GoogleApiClient googleApiClient) {
+        DriveFolder root = Drive.DriveApi.getRootFolder(googleApiClient);
+        return root.getDriveId().toInvariantString();
+    }
+
     @WorkerThread
     @NonNull
     static List<Pair<String, String>> getWallpaperIds(@NonNull GoogleApiClient googleApiClient) {
@@ -175,7 +181,7 @@ final class DriveApiHelper {
     @WorkerThread
     @NonNull
     static String download(@NonNull GoogleApiClient googleApiClient, @NonNull String id) {
-        Log.d("%s", id);
+        Log.d("[download] %s", id);
         DriveId driveId = DriveId.decodeFromString(id);
         DriveFile driveFile = driveId.asDriveFile();
         DriveApi.DriveContentsResult contentsResult = driveFile.open(googleApiClient, DriveFile.MODE_READ_ONLY, null).await();

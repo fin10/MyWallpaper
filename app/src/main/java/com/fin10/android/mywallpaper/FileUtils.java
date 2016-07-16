@@ -74,6 +74,8 @@ public final class FileUtils {
             if (file.createNewFile()) {
                 copy(inputStream, new FileOutputStream(file));
                 return file.getAbsolutePath();
+            } else {
+                Log.e("[%s] already exist.", name);
             }
         } catch (IOException e) {
             e.printStackTrace();

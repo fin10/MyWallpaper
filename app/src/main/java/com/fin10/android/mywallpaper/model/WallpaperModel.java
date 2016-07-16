@@ -36,10 +36,10 @@ public final class WallpaperModel extends BaseModel {
     @PrimaryKey(autoincrement = true)
     long mId;
 
-    @Column(name = "user_id", defaultValue = "\"device\"")
+    @Column(name = "user_id", defaultValue = "\"" + UserId.DEVICE + "\"")
     String mUserId;
 
-    @Column(name = "source", setterName = "setSource", getterName = "getSource")
+    @Column(name = "source", getterName = "getSource")
     String mSource;
 
     @Column(name = "image_path", getterName = "getImagePath")
@@ -66,18 +66,11 @@ public final class WallpaperModel extends BaseModel {
     }
 
     @NonNull
-    public static List<WallpaperModel> getLocalModels() {
+    public static List<WallpaperModel> getModels(@NonNull String userId) {
         return SQLite.select()
                 .from(WallpaperModel.class)
-                .where(WallpaperModel_Table.source.isNull())
-                .queryList();
-    }
-
-    @NonNull
-    public static List<WallpaperModel> getSyncedModels() {
-        return SQLite.select()
-                .from(WallpaperModel.class)
-                .where(WallpaperModel_Table.source.isNotNull())
+                .where(WallpaperModel_Table.user_id.eq(userId))
+                .orderBy(WallpaperModel_Table.creation_time, false)
                 .queryList();
     }
 
@@ -98,11 +91,12 @@ public final class WallpaperModel extends BaseModel {
     }
 
     @NonNull
-    public static WallpaperModel addModel(@NonNull String source, @NonNull String path) {
+    public static WallpaperModel addModel(@NonNull String userId, @NonNull String source, @NonNull String path) {
         WallpaperModel model = new WallpaperModel();
         model.mCreationTime = System.currentTimeMillis();
-        model.mImagePath = path;
+        model.mUserId = userId;
         model.mSource = source;
+        model.mImagePath = path;
         model.insert();
 
         EventBus.getDefault().post(new AddEvent(model));
@@ -111,9 +105,10 @@ public final class WallpaperModel extends BaseModel {
     }
 
     @Nullable
-    public static WallpaperModel addModel(@NonNull Context context, @NonNull Bitmap bitmap) {
+    public static WallpaperModel addModel(@NonNull Context context, @NonNull String source, @NonNull Bitmap bitmap) {
         WallpaperModel model = new WallpaperModel();
         model.mCreationTime = System.currentTimeMillis();
+        model.mSource = source;
         model.mImagePath = FileUtils.write(context, bitmap, model.mCreationTime + ".png");
         if (!TextUtils.isEmpty(model.mImagePath)) {
             model.insert();
@@ -153,9 +148,16 @@ public final class WallpaperModel extends BaseModel {
         return mAppliedCount;
     }
 
+    public void update(@NonNull String userId, @NonNull String source) {
+        mUserId = userId;
+        mSource = source;
+        update();
+    }
+
     public void setAsWallpaper(@NonNull final Context context) {
         new AsyncTask<Void, Void, Boolean>() {
 
+            @NonNull
             @Override
             protected Boolean doInBackground(Void... voids) {
                 try {
@@ -179,7 +181,7 @@ public final class WallpaperModel extends BaseModel {
             }
 
             @Override
-            protected void onPostExecute(Boolean result) {
+            protected void onPostExecute(@NonNull Boolean result) {
                 if (result) {
                     ++mAppliedCount;
                     update();
@@ -212,8 +214,12 @@ public final class WallpaperModel extends BaseModel {
         return mSource != null ? mSource : "";
     }
 
-    public void setSource(@NonNull String source) {
-        mSource = source;
+    public static final class UserId {
+
+        public static final String DEVICE = "device";
+
+        private UserId() {
+        }
     }
 
     public static final class AddEvent {
