@@ -339,7 +339,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
             int position = 0;
             for (WallpaperModel model : mModels) {
-                if (model.getId() == event.id) {
+                if (!model.exists()) {
                     mModels.remove(model);
                     notifyItemRemoved(position);
                     break;

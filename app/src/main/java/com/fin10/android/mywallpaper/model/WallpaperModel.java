@@ -127,8 +127,9 @@ public final class WallpaperModel extends BaseModel {
             return;
         }
 
+        long id = model.getId();
         model.delete();
-        EventBus.getDefault().post(new RemoveEvent(model.getId()));
+        EventBus.getDefault().post(new RemoveEvent(id));
     }
 
     public long getId() {

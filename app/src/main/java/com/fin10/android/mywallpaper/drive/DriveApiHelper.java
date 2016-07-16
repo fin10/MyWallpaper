@@ -18,6 +18,7 @@ import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.DriveFolder;
 import com.google.android.gms.drive.DriveId;
+import com.google.android.gms.drive.DriveStatusCodes;
 import com.google.android.gms.drive.Metadata;
 import com.google.android.gms.drive.MetadataBuffer;
 import com.google.android.gms.drive.MetadataChangeSet;
@@ -167,11 +168,11 @@ final class DriveApiHelper {
         try {
             List<Pair<String, String>> datas = new ArrayList<>();
             for (Metadata data : buffer) {
-                Log.d("[%s] getWebContentLink:%s", data.getTitle(), data.getWebContentLink());
                 DriveId driveId = data.getDriveId();
                 datas.add(Pair.create(driveId.toInvariantString(), driveId.encodeToString()));
             }
 
+            Log.d("[getWallpaperIds] count:%d", datas.size());
             return datas;
         } finally {
             buffer.release();
@@ -194,9 +195,15 @@ final class DriveApiHelper {
     }
 
     @WorkerThread
-    static void sync(@NonNull GoogleApiClient googleApiClient) {
+    static boolean sync(@NonNull GoogleApiClient googleApiClient) {
         Status status = Drive.DriveApi.requestSync(googleApiClient).await();
-        Log.d(status.toString());
+        if (status.getStatusCode() == DriveStatusCodes.DRIVE_RATE_LIMIT_EXCEEDED) {
+            Log.e(status.toString());
+            return false;
+        } else {
+            Log.d(status.toString());
+            return true;
+        }
     }
 
     @WorkerThread

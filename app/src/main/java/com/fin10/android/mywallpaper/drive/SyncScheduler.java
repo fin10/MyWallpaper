@@ -147,7 +147,7 @@ public final class SyncScheduler {
                         }
 
                         for (WallpaperModel model : removeItems) {
-                            model.delete();
+                            WallpaperModel.removeModel(model);
                             Log.d("[%s] removed.", model.getCreationTime());
                         }
 
