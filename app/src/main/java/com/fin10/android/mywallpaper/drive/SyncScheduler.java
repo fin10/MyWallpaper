@@ -167,7 +167,7 @@ public final class SyncScheduler {
                     } else if (INTENT_ACTION_UPLOAD.equals(action)) {
                         long modelId = mIntent.getLongExtra(EXTRA_MODEL_ID, -1);
                         Log.d("modelId:%d", modelId);
-                        WallpaperModel model = WallpaperModel.getModel(modelId);
+                        WallpaperModel model = WallpaperModel.getModel(WallpaperModel.UserId.DEVICE, modelId);
                         if (model != null) {
                             String id = DriveApiHelper.upload(mGoogleApiClient, model);
                             if (!TextUtils.isEmpty(id)) model.update(userId, id);

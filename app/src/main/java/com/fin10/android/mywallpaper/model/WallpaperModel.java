@@ -9,7 +9,6 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.fin10.android.mywallpaper.FileUtils;
 import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.settings.PreferenceUtils;
@@ -25,7 +24,9 @@ import com.raizlabs.android.dbflow.structure.BaseModel;
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -75,10 +76,11 @@ public final class WallpaperModel extends BaseModel {
     }
 
     @Nullable
-    public static WallpaperModel getModel(long id) {
+    public static WallpaperModel getModel(@NonNull String userId, long id) {
         return SQLite.select()
                 .from(WallpaperModel.class)
-                .where(WallpaperModel_Table._id.eq(id))
+                .where(WallpaperModel_Table.user_id.eq(userId))
+                .and(WallpaperModel_Table._id.eq(id))
                 .querySingle();
     }
 
@@ -161,21 +163,27 @@ public final class WallpaperModel extends BaseModel {
             @NonNull
             @Override
             protected Boolean doInBackground(Void... voids) {
+                InputStream input = null;
                 try {
                     WallpaperManager wm = WallpaperManager.getInstance(context);
                     int width = wm.getDesiredMinimumWidth();
                     int height = wm.getDesiredMinimumHeight();
                     Log.d("minimum:%d,%d", width, height);
-                    Bitmap bitmap = Glide.with(context)
+                    File file = Glide.with(context)
                             .load(mImagePath)
-                            .asBitmap()
-                            .diskCacheStrategy(DiskCacheStrategy.NONE)
-                            .into(width, height)
+                            .downloadOnly(width, height)
                             .get();
-                    wm.setBitmap(bitmap);
+                    input = new FileInputStream(file);
+                    wm.setStream(input);
                     return true;
                 } catch (IOException | InterruptedException | ExecutionException e) {
                     e.printStackTrace();
+                } finally {
+                    try {
+                        if (input != null) input.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
 
                 return false;
