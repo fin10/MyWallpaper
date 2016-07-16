@@ -42,6 +42,6 @@ dependencies {
     // kotlin extensions
     compile 'com.github.Raizlabs.DBFlow:dbflow-kotlinextensions:3.1.1'
 
-    compile 'com.google.android.gms:play-services-auth:9.2.0'
-    compile 'com.google.android.gms:play-services-drive:9.2.0'
+    compile 'com.google.android.gms:play-services-auth:9.2.1'
+    compile 'com.google.android.gms:play-services-drive:9.2.1'
 }
