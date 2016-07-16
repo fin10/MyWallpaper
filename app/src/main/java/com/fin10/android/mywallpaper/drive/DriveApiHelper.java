@@ -95,7 +95,7 @@ final class DriveApiHelper {
         }
 
         String id = fileResult.getDriveFile().getDriveId().toInvariantString();
-        Log.d("[upload] %s", id);
+        Log.d("id:%s", id);
         return id;
     }
 
@@ -172,7 +172,7 @@ final class DriveApiHelper {
                 datas.add(Pair.create(driveId.toInvariantString(), driveId.encodeToString()));
             }
 
-            Log.d("[getWallpaperIds] count:%d", datas.size());
+            Log.d("count:%d", datas.size());
             return datas;
         } finally {
             buffer.release();
@@ -182,7 +182,7 @@ final class DriveApiHelper {
     @WorkerThread
     @NonNull
     static String download(@NonNull GoogleApiClient googleApiClient, @NonNull String id) {
-        Log.d("[download] %s", id);
+        Log.d("%s", id);
         DriveId driveId = DriveId.decodeFromString(id);
         DriveFile driveFile = driveId.asDriveFile();
         DriveApi.DriveContentsResult contentsResult = driveFile.open(googleApiClient, DriveFile.MODE_READ_ONLY, null).await();

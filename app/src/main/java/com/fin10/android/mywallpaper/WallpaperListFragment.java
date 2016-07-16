@@ -213,7 +213,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
     @Override
     public void onItemClick(@NonNull View itemView, int position) {
-        Log.d("[%d] onItemClick", position);
+        Log.d("position:%d", position);
         if (mAdapter.isSelectionMode()) {
             mAdapter.setSelected(position);
             if (mActionMode != null) {
@@ -238,7 +238,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
     @Override
     public boolean onItemLongClick(@NonNull View itemView, int position) {
-        Log.d("[%d] onItemLongClick", position);
+        Log.d("position:%d", position);
         if (!mAdapter.isSelectionMode()) {
             mAdapter.setSelectionMode(true);
             mRefreshLayout.setEnabled(false);
@@ -265,7 +265,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onSyncEvent(@NonNull SyncScheduler.SyncEvent event) {
-        Log.d("[onSyncEvent] %b", event.success);
+        Log.d("%b", event.success);
         mRefreshLayout.setRefreshing(false);
 
         mAdapter.notifyDataSetChanged();

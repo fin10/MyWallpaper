@@ -12,7 +12,6 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.R;
-import com.fin10.android.mywallpaper.Utils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -41,7 +40,6 @@ public final class LoginActivity extends AppCompatActivity implements GoogleApiC
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        Log.d("[onCreate]");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         mGoogleApiClient = DriveApiHelper.createGoogleApiClient(this);
@@ -66,7 +64,7 @@ public final class LoginActivity extends AppCompatActivity implements GoogleApiC
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.d("[onActivityResult] requestCode:%d, resultCode:%d", requestCode, resultCode);
+        Log.d("requestCode:%d, resultCode:%d", requestCode, resultCode);
         switch (requestCode) {
             case REQUEST_CODE_CONNECT: {
                 if (resultCode == Activity.RESULT_OK) {
@@ -87,7 +85,6 @@ public final class LoginActivity extends AppCompatActivity implements GoogleApiC
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        Log.d("[onConnected] %s", Utils.toString(bundle));
         String action = getIntent().getAction();
         if (INTENT_ACTION_LOGIN.equals(action)) {
             setResult(RESULT_OK);
@@ -103,12 +100,12 @@ public final class LoginActivity extends AppCompatActivity implements GoogleApiC
 
     @Override
     public void onConnectionSuspended(int cause) {
-        Log.d("[onConnectionSuspended] cause:%d", cause);
+        Log.e("cause:%d", cause);
     }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.d("[onConnectionFailed] %s", connectionResult.toString());
+        Log.d("%s", connectionResult.toString());
         String action = getIntent().getAction();
         if (INTENT_ACTION_LOGIN.equals(action)) {
             if (connectionResult.hasResolution() && connectionResult.getErrorCode() == ConnectionResult.SIGN_IN_REQUIRED) {

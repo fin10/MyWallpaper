@@ -31,7 +31,7 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.d("[onActivityResult] requestCode:%d, resultCode:%d", requestCode, resultCode);
+        Log.d("requestCode:%d, resultCode:%d", requestCode, resultCode);
         switch (requestCode) {
             case REQUEST_CODE_LOGIN: {
                 if (resultCode == Activity.RESULT_OK) {

@@ -41,7 +41,9 @@ public final class Log {
             buf.append(')');
         }
 
-        buf.append(' ');
+        buf.append(" [");
+        buf.append(element.getMethodName());
+        buf.append("] ");
         buf.append(msg);
 
         return buf.toString();

@@ -34,7 +34,7 @@ public final class FileUtils {
                 sRootPath = context.getFilesDir() + "/" + path;
                 File file = new File(sRootPath);
                 boolean result = file.exists() || file.mkdirs();
-                Log.d("[%b] %s", result, sRootPath);
+                Log.d("result:%b, %s", result, sRootPath);
             } catch (XmlPullParserException | IOException e) {
                 e.printStackTrace();
             }

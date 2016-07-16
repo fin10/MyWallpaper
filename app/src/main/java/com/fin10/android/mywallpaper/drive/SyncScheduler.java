@@ -66,7 +66,7 @@ public final class SyncScheduler {
     }
 
     public static void start(@NonNull Context context) {
-        Log.d("[start]");
+        Log.d("enter");
         JobInfo jobInfo = new JobInfo.Builder(JOB_ID, new ComponentName(context, ScheduleService.class))
                 .setPersisted(true)
                 .setPeriodic(DateUtils.DAY_IN_MILLIS)
@@ -79,7 +79,7 @@ public final class SyncScheduler {
     }
 
     public static void stop(@NonNull Context context) {
-        Log.d("[stop]");
+        Log.d("enter");
         JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
         jobScheduler.cancel(JOB_ID);
     }
@@ -91,7 +91,7 @@ public final class SyncScheduler {
 
         @Override
         public void onCreate() {
-            Log.d("[onCreate]");
+            Log.d("enter");
             super.onCreate();
             mGoogleApiClient = DriveApiHelper.createGoogleApiClient(this);
             mGoogleApiClient.registerConnectionCallbacks(this);
@@ -113,7 +113,7 @@ public final class SyncScheduler {
 
         @Override
         public void onDestroy() {
-            Log.d("[onDestroy]");
+            Log.d("enter");
             super.onDestroy();
             mGoogleApiClient.disconnect();
             mGoogleApiClient.unregisterConnectionCallbacks(this);
@@ -122,7 +122,7 @@ public final class SyncScheduler {
 
         @Override
         public void onConnected(@Nullable Bundle bundle) {
-            Log.d("[onConnected]");
+            Log.d("enter");
             final String action = mIntent.getAction();
             new AsyncTask<Void, Void, Boolean>() {
 
@@ -148,7 +148,7 @@ public final class SyncScheduler {
 
                         for (WallpaperModel model : removeItems) {
                             WallpaperModel.removeModel(model);
-                            Log.d("[%s] removed.", model.getCreationTime());
+                            Log.d("%s is removed.", model.getCreationTime());
                         }
 
                         models = WallpaperModel.getModels(WallpaperModel.UserId.DEVICE);
@@ -191,12 +191,12 @@ public final class SyncScheduler {
 
         @Override
         public void onConnectionSuspended(int cause) {
-            Log.d("[onConnectionSuspended] cause:%d", cause);
+            Log.e("cause:%d", cause);
         }
 
         @Override
         public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-            Log.d("[onConnectionFailed] %s", connectionResult.toString());
+            Log.e("%s", connectionResult.toString());
             EventBus.getDefault().post(new SyncEvent(false));
             stopSelf();
         }
@@ -208,7 +208,7 @@ public final class SyncScheduler {
 
         @Override
         public boolean onStartJob(JobParameters jobParameters) {
-            Log.d("[onStartJob] id:%d", jobParameters.getJobId());
+            Log.d("id:%d", jobParameters.getJobId());
             EventBus.getDefault().register(this);
             mJobParams = jobParameters;
             sync(this);
@@ -217,7 +217,7 @@ public final class SyncScheduler {
 
         @Override
         public boolean onStopJob(JobParameters jobParameters) {
-            Log.d("[onStopJob] id:%d", jobParameters.getJobId());
+            Log.d("id:%d", jobParameters.getJobId());
             EventBus.getDefault().unregister(this);
             mJobParams = null;
             return true;
