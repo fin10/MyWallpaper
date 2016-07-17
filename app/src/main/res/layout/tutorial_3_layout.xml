@@ -10,7 +10,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         android:layout_weight="1"
         android:gravity="center"
         android:orientation="vertical"
@@ -45,15 +45,19 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1.6">
+        android:layout_height="0dp"
+        android:layout_weight="0.6"
+        android:paddingEnd="40dp"
+        android:paddingStart="40dp"
+        android:paddingTop="20dp"
+        >
 
         <ImageView
-            android:layout_width="240dp"
-            android:layout_height="220dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
             android:src="@drawable/tutorial_3"
-            />
+            tools:ignore="ContentDescription"/>
     </RelativeLayout>
 </LinearLayout>
