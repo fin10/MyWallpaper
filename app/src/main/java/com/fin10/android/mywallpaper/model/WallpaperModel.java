@@ -2,7 +2,6 @@ package com.fin10.android.mywallpaper.model;
 
 import android.app.WallpaperManager;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -25,6 +24,7 @@ import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -107,15 +107,19 @@ public final class WallpaperModel extends BaseModel {
     }
 
     @Nullable
-    public static WallpaperModel addModel(@NonNull Context context, @NonNull String source, @NonNull Bitmap bitmap) {
-        WallpaperModel model = new WallpaperModel();
-        model.mCreationTime = System.currentTimeMillis();
-        model.mSource = source;
-        model.mImagePath = FileUtils.write(context, bitmap, model.mCreationTime + ".png");
-        if (!TextUtils.isEmpty(model.mImagePath)) {
-            model.insert();
-            EventBus.getDefault().post(new AddEvent(model));
-            return model;
+    public static WallpaperModel addModel(@NonNull Context context, @NonNull String source, @NonNull File file) {
+        try {
+            WallpaperModel model = new WallpaperModel();
+            model.mCreationTime = System.currentTimeMillis();
+            model.mSource = source;
+            model.mImagePath = FileUtils.write(context, new FileInputStream(file), model.mCreationTime + ".png");
+            if (!TextUtils.isEmpty(model.mImagePath)) {
+                model.insert();
+                EventBus.getDefault().post(new AddEvent(model));
+                return model;
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         }
 
         return null;

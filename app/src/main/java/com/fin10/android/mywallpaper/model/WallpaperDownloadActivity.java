@@ -6,7 +6,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -22,9 +21,6 @@ import android.text.TextUtils;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.request.animation.GlideAnimation;
-import com.bumptech.glide.request.target.SimpleTarget;
 import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.MainActivity;
 import com.fin10.android.mywallpaper.R;
@@ -33,7 +29,11 @@ import com.fin10.android.mywallpaper.drive.SyncScheduler;
 import com.fin10.android.mywallpaper.settings.PreferenceUtils;
 import com.fin10.android.mywallpaper.settings.WallpaperChangeScheduler;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
 public final class WallpaperDownloadActivity extends AppCompatActivity {
@@ -87,14 +87,21 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
 
     public static final class DownloadService extends Service {
 
+        private static final String INTENT_ACTION_CANCEL_NOTIFICATION = "cancel_notification";
+        private static final String INTENT_ACTION_DOWNLOAD_WALLPAPER = "download_wallpaper";
+
+        private final Map<Integer, AsyncTask> mTaskMap = new HashMap<>();
+
         private static void download(@NonNull Context context, @NonNull Uri uri) {
             Intent i = new Intent(context, DownloadService.class);
+            i.setAction(INTENT_ACTION_DOWNLOAD_WALLPAPER);
+            i.putExtra("id", uri.hashCode());
             i.putExtra("uri", uri);
             context.startService(i);
         }
 
         @NonNull
-        private static Notification createDownloadingNotification(@NonNull Context context, @NonNull Uri uri) {
+        private static Notification createDownloadingNotification(@NonNull Context context, @NonNull Uri uri, int id) {
             return new NotificationCompat.Builder(context)
                     .setSmallIcon(R.drawable.ic_wallpaper_white_48dp)
                     .setColor(ContextCompat.getColor(context, R.color.primary))
@@ -104,6 +111,9 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
                     .setProgress(0, 0, true)
                     .setOngoing(true)
                     .setShowWhen(false)
+                    .addAction(R.drawable.ic_clear_black_24dp,
+                            context.getString(android.R.string.cancel),
+                            createCancelPendingIntent(context, id))
                     .build();
         }
 
@@ -141,6 +151,14 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
             return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         }
 
+        @NonNull
+        private static PendingIntent createCancelPendingIntent(@NonNull Context context, int id) {
+            Intent intent = new Intent(context, DownloadService.class);
+            intent.setAction(INTENT_ACTION_CANCEL_NOTIFICATION);
+            intent.putExtra("id", id);
+            return PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        }
+
         @Nullable
         @Override
         public IBinder onBind(Intent intent) {
@@ -148,75 +166,89 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
         }
 
         @Override
-        public int onStartCommand(Intent intent, int flags, int startId) {
-            if (intent == null) {
-                Log.e("[%d] the intent is null.", startId);
+        public int onStartCommand(Intent intent, int flags, final int startId) {
+            String action = intent.getAction();
+            final int id = intent.getIntExtra("id", -1);
+            if (id == -1) {
+                Log.e("There is no id.");
                 stopSelf();
                 return Service.START_NOT_STICKY;
             }
 
-            final Uri uri = intent.getParcelableExtra("uri");
-            Log.d("uri:%s", uri);
-            if (uri == null) {
-                Log.e("[%d] the intent has no uri.", startId);
+            if (INTENT_ACTION_CANCEL_NOTIFICATION.equals(action)) {
+                Log.d("cancel %d notification", id);
+                NotificationManagerCompat.from(this).cancel(id);
+                AsyncTask task = mTaskMap.remove(id);
+                if (task != null) task.cancel(true);
+                else Log.e("%d task does not exist.", id);
                 stopSelf();
-                return Service.START_NOT_STICKY;
-            }
 
-            NotificationManagerCompat.from(this).notify(uri.hashCode(), createDownloadingNotification(this, uri));
+            } else if (INTENT_ACTION_DOWNLOAD_WALLPAPER.equals(action)) {
+                final Uri uri = intent.getParcelableExtra("uri");
+                Log.d("uri:%s", uri);
+                if (uri == null) {
+                    Log.e("the intent has no uri.");
+                    stopSelf();
+                    return Service.START_NOT_STICKY;
+                }
 
-            Pair<Integer, Integer> size = Utils.getScreenSize(this);
-            Glide.with(this)
-                    .load(uri)
-                    .asBitmap()
-                    .diskCacheStrategy(DiskCacheStrategy.SOURCE)
-                    .into(new SimpleTarget<Bitmap>(size.first, size.second) {
+                NotificationManagerCompat.from(this).notify(id, createDownloadingNotification(this, uri, id));
 
-                        @Override
-                        public void onResourceReady(final Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
-                            Log.d("W:%d, H:%d", resource.getWidth(), resource.getHeight());
-                            new AsyncTask<Void, Void, Boolean>() {
+                AsyncTask<Context, Void, Bitmap> task = new AsyncTask<Context, Void, Bitmap>() {
 
-                                @Override
-                                protected Boolean doInBackground(Void... voids) {
-                                    WallpaperModel result = WallpaperModel.addModel(getBaseContext(), uri.toString(), resource);
-                                    if (result != null && PreferenceUtils.isSyncEnabled(getBaseContext())) {
-                                        SyncScheduler.upload(getBaseContext(), result);
-                                    }
+                    @Nullable
+                    @Override
+                    protected Bitmap doInBackground(Context... contexts) {
+                        Context context = contexts[0];
+                        Pair<Integer, Integer> size = Utils.getScreenSize(context);
+                        try {
+                            File file = Glide.with(context)
+                                    .load(uri)
+                                    .downloadOnly(size.first, size.second)
+                                    .get();
 
-                                    return result != null;
-                                }
+                            WallpaperModel result = WallpaperModel.addModel(getBaseContext(), uri.toString(), file);
+                            if (result != null && PreferenceUtils.isSyncEnabled(getBaseContext())) {
+                                SyncScheduler.upload(getBaseContext(), result);
+                            }
 
-                                @Override
-                                protected void onPostExecute(Boolean result) {
-                                    if (result) {
-                                        if (PreferenceUtils.isAutoChangeEnabled(getBaseContext())) {
-                                            WallpaperChangeScheduler.start(getBaseContext(), PreferenceUtils.getInterval(getBaseContext()));
-                                        }
-
-                                        NotificationManagerCompat.from(getBaseContext())
-                                                .notify(uri.hashCode(), createDownloadedNotification(getBaseContext(), resource));
-                                        Toast.makeText(getBaseContext(), R.string.new_wallpaper_is_added, Toast.LENGTH_SHORT).show();
-                                    } else {
-                                        NotificationManagerCompat.from(getBaseContext())
-                                                .notify(uri.hashCode(), createFailedNotification(getBaseContext(), uri));
-                                        Toast.makeText(getBaseContext(), R.string.failed_to_download, Toast.LENGTH_SHORT).show();
-                                    }
-                                    stopSelf();
-                                }
-                            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                            return Glide.with(context)
+                                    .load(file.getAbsolutePath())
+                                    .asBitmap()
+                                    .centerCrop()
+                                    .into(context.getResources().getDimensionPixelSize(android.R.dimen.thumbnail_width),
+                                            context.getResources().getDimensionPixelSize(android.R.dimen.thumbnail_height))
+                                    .get();
+                        } catch (InterruptedException | ExecutionException e) {
+                            e.printStackTrace();
                         }
 
-                        @Override
-                        public void onLoadFailed(Exception e, Drawable errorDrawable) {
-                            super.onLoadFailed(e, errorDrawable);
-                            if (e != null) e.printStackTrace();
+                        return null;
+                    }
+
+                    @Override
+                    protected void onPostExecute(@Nullable Bitmap result) {
+                        if (result != null) {
+                            if (PreferenceUtils.isAutoChangeEnabled(getBaseContext())) {
+                                WallpaperChangeScheduler.start(getBaseContext(), PreferenceUtils.getInterval(getBaseContext()));
+                            }
+
+                            NotificationManagerCompat.from(getBaseContext())
+                                    .notify(uri.hashCode(), createDownloadedNotification(getBaseContext(), result));
+                            Toast.makeText(getBaseContext(), R.string.new_wallpaper_is_added, Toast.LENGTH_SHORT).show();
+                        } else {
                             NotificationManagerCompat.from(getBaseContext())
                                     .notify(uri.hashCode(), createFailedNotification(getBaseContext(), uri));
                             Toast.makeText(getBaseContext(), R.string.failed_to_download, Toast.LENGTH_SHORT).show();
-                            stopSelf();
                         }
-                    });
+
+                        mTaskMap.remove(id);
+                        stopSelf();
+                    }
+                };
+                task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, this);
+                mTaskMap.put(id, task);
+            }
 
             return Service.START_NOT_STICKY;
         }

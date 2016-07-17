@@ -2,7 +2,6 @@ package com.fin10.android.mywallpaper;
 
 import android.content.Context;
 import android.content.res.XmlResourceParser;
-import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
@@ -41,30 +40,6 @@ public final class FileUtils {
         }
 
         return sRootPath;
-    }
-
-    @NonNull
-    public static String write(@NonNull Context context, @NonNull Bitmap bitmap, @NonNull String name) {
-        FileOutputStream output = null;
-        File file = new File(getRootPath(context) + "/" + name);
-        try {
-            if (file.createNewFile()) {
-                output = new FileOutputStream(file);
-                if (bitmap.compress(Bitmap.CompressFormat.PNG, 100, output)) {
-                    return file.getAbsolutePath();
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (output != null) output.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return "";
     }
 
     @NonNull

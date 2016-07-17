@@ -1,7 +1,5 @@
 package com.fin10.android.mywallpaper.model;
 
-import android.graphics.Bitmap;
-import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -17,11 +15,6 @@ import java.util.List;
 public final class WallpaperModelTest {
 
     private boolean initialized = false;
-
-    @NonNull
-    private static Bitmap createTestBitmap() {
-        return Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888);
-    }
 
     @Before
     public void setUp() throws Exception {
@@ -41,19 +34,13 @@ public final class WallpaperModelTest {
 
     @Test
     public void testAddModel() throws Exception {
-        WallpaperModel model = WallpaperModel.addModel(InstrumentationRegistry.getTargetContext(), "empty", createTestBitmap());
-        Assert.assertNotNull(model);
-    }
-
-    @Test
-    public void testAddModel2() throws Exception {
         WallpaperModel model = WallpaperModel.addModel(WallpaperModel.UserId.DEVICE, "test", "test.png");
         Assert.assertNotNull(model);
     }
 
     @Test
     public void testGetModels() throws Exception {
-        WallpaperModel model = WallpaperModel.addModel(InstrumentationRegistry.getTargetContext(), "empty", createTestBitmap());
+        WallpaperModel model = WallpaperModel.addModel(WallpaperModel.UserId.DEVICE, "test", "test.png");
         Assert.assertNotNull(model);
 
         List<WallpaperModel> models = WallpaperModel.getModels(WallpaperModel.UserId.DEVICE);
@@ -62,7 +49,7 @@ public final class WallpaperModelTest {
 
     @Test
     public void testRemoveModel() throws Exception {
-        WallpaperModel model = WallpaperModel.addModel(InstrumentationRegistry.getTargetContext(), "empty", createTestBitmap());
+        WallpaperModel model = WallpaperModel.addModel(WallpaperModel.UserId.DEVICE, "test", "test.png");
         Assert.assertNotNull(model);
 
         List<WallpaperModel> models = WallpaperModel.getModels(WallpaperModel.UserId.DEVICE);
@@ -75,7 +62,7 @@ public final class WallpaperModelTest {
 
     @Test
     public void testGetUserIdModels() throws Exception {
-        WallpaperModel model = WallpaperModel.addModel(InstrumentationRegistry.getTargetContext(), "empty", createTestBitmap());
+        WallpaperModel model = WallpaperModel.addModel(WallpaperModel.UserId.DEVICE, "test", "test.png");
         List<WallpaperModel> models = WallpaperModel.getModels(WallpaperModel.UserId.DEVICE);
         Assert.assertEquals(model, models.get(0));
     }
