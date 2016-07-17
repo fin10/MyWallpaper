@@ -35,15 +35,16 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
         switch (requestCode) {
             case REQUEST_CODE_LOGIN: {
                 if (resultCode == Activity.RESULT_OK) {
-                    SyncScheduler.start(getActivity());
-                } else {
                     SwitchPreference pref = (SwitchPreference) findPreference(getString(R.string.pref_key_sync_enabled));
-                    pref.setChecked(false);
+                    pref.setChecked(true);
+                    SyncScheduler.start(getActivity());
                 }
                 break;
             }
             case REQUEST_CODE_LOGOUT: {
                 SyncScheduler.stop(getActivity());
+                SwitchPreference pref = (SwitchPreference) findPreference(getString(R.string.pref_key_sync_enabled));
+                pref.setChecked(false);
             }
         }
     }
@@ -63,6 +64,7 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
             boolean value = (boolean) newValue;
             if (value) LoginActivity.login(this, REQUEST_CODE_LOGIN);
             else LoginActivity.logout(this, REQUEST_CODE_LOGOUT);
+            return false;
         }
 
         return true;
