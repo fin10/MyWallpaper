@@ -31,4 +31,5 @@
     <string name="synchronize_wallpapers_via_google_drive">Synchronize wallpapers via Google Drive.</string>
     <string name="backup_and_restore"><![CDATA[Backup & restore]]></string>
     <string name="changing">Changing…</string>
+    <string name="set_live_wallpaper">Set Live wallpaper</string>
 </resources>

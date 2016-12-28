@@ -8,23 +8,40 @@
     android:fitsSystemWindows="true"
     tools:context=".MainActivity">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:animateLayoutChanges="true">
 
-        <include
-            android:id="@+id/toolbar"
-            layout="@layout/toolbar_layout"
-            />
-
-        <fragment
-            android:id="@+id/wallpaper_list_fragment"
-            android:name="com.fin10.android.mywallpaper.WallpaperListFragment"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            tools:layout="@layout/fragment_wallpaper_list"/>
+            android:orientation="vertical">
 
-    </LinearLayout>
+            <include
+                android:id="@+id/toolbar"
+                layout="@layout/toolbar_layout"
+                />
+
+            <fragment
+                android:id="@+id/wallpaper_list_fragment"
+                android:name="com.fin10.android.mywallpaper.WallpaperListFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:layout="@layout/fragment_wallpaper_list"/>
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/live_wallpaper_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_margin="12dp"
+            android:text="@string/set_live_wallpaper"
+            />
+
+    </RelativeLayout>
+
 
 </android.support.design.widget.CoordinatorLayout>

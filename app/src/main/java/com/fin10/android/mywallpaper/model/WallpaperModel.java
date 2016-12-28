@@ -1,5 +1,6 @@
 package com.fin10.android.mywallpaper.model;
 
+import android.app.WallpaperInfo;
 import android.app.WallpaperManager;
 import android.content.Context;
 import android.os.AsyncTask;
@@ -8,6 +9,7 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.bumptech.glide.Glide;
+import com.fin10.android.mywallpaper.BuildConfig;
 import com.fin10.android.mywallpaper.FileUtils;
 import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.settings.PreferenceUtils;
@@ -73,6 +75,14 @@ public final class WallpaperModel extends BaseModel {
                 .where(WallpaperModel_Table.user_id.eq(userId))
                 .orderBy(WallpaperModel_Table.creation_time, false)
                 .queryList();
+    }
+
+    @Nullable
+    public static WallpaperModel getModel(long id) {
+        return SQLite.select()
+                .from(WallpaperModel.class)
+                .where(WallpaperModel_Table._id.eq(id))
+                .querySingle();
     }
 
     @Nullable
@@ -167,26 +177,31 @@ public final class WallpaperModel extends BaseModel {
             @NonNull
             @Override
             protected Boolean doInBackground(Void... voids) {
-                InputStream input = null;
-                try {
-                    WallpaperManager wm = WallpaperManager.getInstance(context);
-                    int width = wm.getDesiredMinimumWidth();
-                    int height = wm.getDesiredMinimumHeight();
-                    Log.d("minimum:%d,%d", width, height);
-                    File file = Glide.with(context)
-                            .load(mImagePath)
-                            .downloadOnly(width, height)
-                            .get();
-                    input = new FileInputStream(file);
-                    wm.setStream(input);
+                WallpaperManager wm = WallpaperManager.getInstance(context);
+                WallpaperInfo info = wm.getWallpaperInfo();
+                if (info != null && BuildConfig.APPLICATION_ID.equals(info.getPackageName())) {
                     return true;
-                } catch (IOException | InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                } finally {
+                } else {
+                    InputStream input = null;
                     try {
-                        if (input != null) input.close();
-                    } catch (IOException e) {
+                        int width = wm.getDesiredMinimumWidth();
+                        int height = wm.getDesiredMinimumHeight();
+                        Log.d("minimum:%d,%d", width, height);
+                        File file = Glide.with(context)
+                                .load(mImagePath)
+                                .downloadOnly(width, height)
+                                .get();
+                        input = new FileInputStream(file);
+                        wm.setStream(input);
+                        return true;
+                    } catch (IOException | InterruptedException | ExecutionException e) {
                         e.printStackTrace();
+                    } finally {
+                        try {
+                            if (input != null) input.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
 

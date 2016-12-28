@@ -2,10 +2,12 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.fin10.android.mywallpaper">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.SET_WALLPAPER" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.SET_WALLPAPER"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+    <uses-feature android:name="android.software.live_wallpaper"/>
 
     <application
         android:name=".MainApplication"
@@ -104,5 +106,18 @@
             android:theme="@style/TransparentAppTheme"
             />
 
+        <service
+            android:name=".LiveWallpaperService"
+            android:exported="true"
+            android:permission="android.permission.BIND_WALLPAPER">
+
+            <intent-filter>
+                <action android:name="android.service.wallpaper.WallpaperService"/>
+            </intent-filter>
+
+            <meta-data
+                android:name="android.service.wallpaper"
+                android:resource="@xml/live_wallpaper"/>
+        </service>
     </application>
 </manifest>

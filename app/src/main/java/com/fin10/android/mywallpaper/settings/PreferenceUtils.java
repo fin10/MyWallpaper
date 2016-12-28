@@ -18,6 +18,11 @@ public final class PreferenceUtils {
         pref.edit().putLong(context.getString(R.string.pref_key_current_wallpaper_id), id).apply();
     }
 
+    public static long getCurrentWallpaper(@NonNull Context context) {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+        return pref.getLong(context.getString(R.string.pref_key_current_wallpaper_id), -1);
+    }
+
     public static boolean isCurrentWallpaper(@NonNull Context context, long id) {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
         return pref.getLong(context.getString(R.string.pref_key_current_wallpaper_id), -1) == id;
