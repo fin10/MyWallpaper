@@ -109,7 +109,9 @@
         <service
             android:name=".LiveWallpaperService"
             android:exported="true"
-            android:permission="android.permission.BIND_WALLPAPER">
+            android:permission="android.permission.BIND_WALLPAPER"
+            android:process=":live_wallpaper"
+            >
 
             <intent-filter>
                 <action android:name="android.service.wallpaper.WallpaperService"/>

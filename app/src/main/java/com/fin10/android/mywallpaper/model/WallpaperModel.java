@@ -1,18 +1,12 @@
 package com.fin10.android.mywallpaper.model;
 
-import android.app.WallpaperInfo;
-import android.app.WallpaperManager;
 import android.content.Context;
-import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
-import com.bumptech.glide.Glide;
-import com.fin10.android.mywallpaper.BuildConfig;
 import com.fin10.android.mywallpaper.FileUtils;
 import com.fin10.android.mywallpaper.Log;
-import com.fin10.android.mywallpaper.settings.PreferenceUtils;
 import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.NotNull;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
@@ -27,10 +21,7 @@ import org.greenrobot.eventbus.EventBus;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 @Table(database = WallpaperDatabase.class)
 public final class WallpaperModel extends BaseModel {
@@ -117,7 +108,7 @@ public final class WallpaperModel extends BaseModel {
     }
 
     @Nullable
-    public static WallpaperModel addModel(@NonNull Context context, @NonNull String source, @NonNull File file) {
+    static WallpaperModel addModel(@NonNull Context context, @NonNull String source, @NonNull File file) {
         try {
             WallpaperModel model = new WallpaperModel();
             model.mCreationTime = System.currentTimeMillis();
@@ -171,54 +162,10 @@ public final class WallpaperModel extends BaseModel {
         update();
     }
 
-    public void setAsWallpaper(@NonNull final Context context) {
-        new AsyncTask<Void, Void, Boolean>() {
-
-            @NonNull
-            @Override
-            protected Boolean doInBackground(Void... voids) {
-                WallpaperManager wm = WallpaperManager.getInstance(context);
-                WallpaperInfo info = wm.getWallpaperInfo();
-                if (info != null && BuildConfig.APPLICATION_ID.equals(info.getPackageName())) {
-                    return true;
-                } else {
-                    InputStream input = null;
-                    try {
-                        int width = wm.getDesiredMinimumWidth();
-                        int height = wm.getDesiredMinimumHeight();
-                        Log.d("minimum:%d,%d", width, height);
-                        File file = Glide.with(context)
-                                .load(mImagePath)
-                                .downloadOnly(width, height)
-                                .get();
-                        input = new FileInputStream(file);
-                        wm.setStream(input);
-                        return true;
-                    } catch (IOException | InterruptedException | ExecutionException e) {
-                        e.printStackTrace();
-                    } finally {
-                        try {
-                            if (input != null) input.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-
-                return false;
-            }
-
-            @Override
-            protected void onPostExecute(@NonNull Boolean result) {
-                if (result) {
-                    ++mAppliedCount;
-                    update();
-                    PreferenceUtils.setCurrentWallpaper(context, mId);
-                }
-
-                EventBus.getDefault().post(new SetAsWallpaperEvent(result ? mId : -1));
-            }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    @Override
+    public void update() {
+        super.update();
+        EventBus.getDefault().post(new UpdateEvent(this));
     }
 
     @Override
@@ -242,6 +189,11 @@ public final class WallpaperModel extends BaseModel {
         return mSource != null ? mSource : "";
     }
 
+    void incrementAppliedCount() {
+        ++mAppliedCount;
+        update();
+    }
+
     public static final class UserId {
 
         public static final String DEVICE = "device";
@@ -260,6 +212,16 @@ public final class WallpaperModel extends BaseModel {
         }
     }
 
+    public static final class UpdateEvent {
+
+        @NonNull
+        public final WallpaperModel model;
+
+        private UpdateEvent(@NonNull WallpaperModel model) {
+            this.model = model;
+        }
+    }
+
     public static final class RemoveEvent {
 
         public final long id;
@@ -268,14 +230,4 @@ public final class WallpaperModel extends BaseModel {
             this.id = id;
         }
     }
-
-    public static final class SetAsWallpaperEvent {
-
-        public final long id;
-
-        private SetAsWallpaperEvent(long id) {
-            this.id = id;
-        }
-    }
-
 }

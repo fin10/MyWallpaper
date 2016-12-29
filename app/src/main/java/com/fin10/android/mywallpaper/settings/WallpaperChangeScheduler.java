@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.support.annotation.NonNull;
 
 import com.fin10.android.mywallpaper.Log;
+import com.fin10.android.mywallpaper.model.WallpaperChanger;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
 
 import java.util.List;
@@ -50,8 +51,8 @@ public final class WallpaperChangeScheduler extends BroadcastReceiver {
             Random random = new Random();
             while (count > 1) {
                 WallpaperModel model = models.get(random.nextInt(count));
-                if (!PreferenceUtils.isCurrentWallpaper(context, model.getId())) {
-                    model.setAsWallpaper(context);
+                if (!WallpaperChanger.isCurrentWallpaper(context, model.getId())) {
+                    WallpaperChanger.changeWallpaper(context, model.getId());
                     break;
                 }
             }

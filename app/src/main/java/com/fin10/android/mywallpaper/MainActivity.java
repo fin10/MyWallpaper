@@ -3,6 +3,7 @@ package com.fin10.android.mywallpaper;
 import android.Manifest;
 import android.app.WallpaperInfo;
 import android.app.WallpaperManager;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -17,7 +18,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.fin10.android.mywallpaper.model.WallpaperModel;
+import com.fin10.android.mywallpaper.model.WallpaperChanger;
 import com.fin10.android.mywallpaper.settings.PreferenceUtils;
 import com.fin10.android.mywallpaper.settings.SettingsActivity;
 import com.fin10.android.mywallpaper.tutorial.TutorialActivity;
@@ -28,6 +29,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 public final class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
+    private final BroadcastReceiver mReceiver = new WallpaperChanger.Receiver();
     private Snackbar mSnackBar;
     private View mLiveWallpaperButton;
 
@@ -42,6 +44,8 @@ public final class MainActivity extends AppCompatActivity implements View.OnClic
 
         setContentView(R.layout.activity_main);
         EventBus.getDefault().register(this);
+
+        registerReceiver(mReceiver, WallpaperChanger.Receiver.getIntentFilter());
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -96,6 +100,7 @@ public final class MainActivity extends AppCompatActivity implements View.OnClic
     protected void onDestroy() {
         super.onDestroy();
         EventBus.getDefault().unregister(this);
+        unregisterReceiver(mReceiver);
     }
 
     @Override
@@ -110,7 +115,8 @@ public final class MainActivity extends AppCompatActivity implements View.OnClic
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onWallpaperChanged(@NonNull WallpaperModel.SetAsWallpaperEvent event) {
+    public void onWallpaperChanged(@NonNull WallpaperChanger.ChangeWallpaperEvent event) {
+        Log.d("id:%d", event.id);
         if (!mSnackBar.isShown()) {
             mSnackBar.show();
         }
