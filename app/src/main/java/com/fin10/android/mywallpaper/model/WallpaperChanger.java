@@ -4,26 +4,21 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import com.fin10.android.mywallpaper.BuildConfig;
 import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.R;
+import com.fin10.android.mywallpaper.settings.PreferenceModel;
 
 import org.greenrobot.eventbus.EventBus;
 
 public final class WallpaperChanger {
 
     public static long getCurrentWallpaper(@NonNull Context context) {
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-        return pref.getLong(context.getString(R.string.pref_key_current_wallpaper_id), -1);
-    }
-
-    public static boolean isCurrentWallpaper(@NonNull Context context, long id) {
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-        return pref.getLong(context.getString(R.string.pref_key_current_wallpaper_id), -1) == id;
+        String value = PreferenceModel.getValue(context.getString(R.string.pref_key_current_wallpaper_id));
+        return TextUtils.isEmpty(value) ? -1 : Long.parseLong(value);
     }
 
     public static boolean changeWallpaper(@NonNull final Context context, long id) {
@@ -35,8 +30,8 @@ public final class WallpaperChanger {
 
         Log.d("id:%d", id);
         model.incrementAppliedCount();
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-        pref.edit().putLong(context.getString(R.string.pref_key_current_wallpaper_id), model.getId()).apply();
+        String key = context.getString(R.string.pref_key_current_wallpaper_id);
+        PreferenceModel.setValue(key, Long.toString(model.getId()));
 
         Intent intent = new Intent(Receiver.ACTION_WALLPAPER_CHANGED);
         intent.putExtra(Receiver.EXTRA_ID, model.getId());

@@ -51,6 +51,7 @@ public final class MainActivity extends AppCompatActivity implements View.OnClic
         setSupportActionBar(toolbar);
 
         mSnackBar = Snackbar.make(findViewById(R.id.coordinator_layout), R.string.wallpaper_is_changed, Snackbar.LENGTH_SHORT);
+        mSnackBar.setActionTextColor(ActivityCompat.getColor(this, R.color.primary));
         mSnackBar.setAction(R.string.close, new View.OnClickListener() {
 
             @Override

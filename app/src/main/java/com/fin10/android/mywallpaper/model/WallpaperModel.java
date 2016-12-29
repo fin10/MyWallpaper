@@ -11,8 +11,6 @@ import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.NotNull;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;
-import com.raizlabs.android.dbflow.config.FlowConfig;
-import com.raizlabs.android.dbflow.config.FlowManager;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.raizlabs.android.dbflow.structure.BaseModel;
 
@@ -47,10 +45,6 @@ public final class WallpaperModel extends BaseModel {
 
     @Column(name = "applied_count", defaultValue = "0")
     long mAppliedCount;
-
-    public static void init(@NonNull Context context) {
-        FlowManager.init(new FlowConfig.Builder(context).build());
-    }
 
     @NonNull
     public static List<WallpaperModel> getModels() {

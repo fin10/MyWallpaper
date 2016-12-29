@@ -9,6 +9,7 @@ import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.SwitchPreference;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.text.TextUtils;
 import android.view.View;
 
@@ -41,6 +42,7 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mSnackBar = Snackbar.make(getActivity().findViewById(R.id.coordinator_layout), R.string.it_needs_to_set_live_wallpaper, Snackbar.LENGTH_SHORT);
+        mSnackBar.setActionTextColor(ActivityCompat.getColor(getActivity(), R.color.primary));
         mSnackBar.setAction(R.string.set, new View.OnClickListener() {
 
             @Override

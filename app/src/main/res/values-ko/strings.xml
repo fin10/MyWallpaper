@@ -32,7 +32,7 @@
     <string name="backup_and_restore"><![CDATA[백업 & 복원]]></string>
     <string name="synchronize_wallpapers_via_google_drive">구글 드라이브를 통해 배경화면을 동기화합니다.</string>
     <string name="changing">변경중…</string>
-    <string name="set_live_wallpaper">라이브 월페이퍼 설정하기</string>
-    <string name="it_needs_to_set_live_wallpaper">라이브 월페이퍼 설정이 필요합니다.</string>
+    <string name="set_live_wallpaper">라이브 배경화면 설정하기</string>
+    <string name="it_needs_to_set_live_wallpaper">라이브 배경화면 설정이 필요합니다.</string>
     <string name="set">설정</string>
 </resources>

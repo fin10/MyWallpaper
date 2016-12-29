@@ -19,7 +19,7 @@ public final class WallpaperModelTest {
     @Before
     public void setUp() throws Exception {
         if (!initialized) {
-            WallpaperModel.init(InstrumentationRegistry.getTargetContext());
+            WallpaperDatabase.init(InstrumentationRegistry.getTargetContext());
             initialized = true;
         }
     }
