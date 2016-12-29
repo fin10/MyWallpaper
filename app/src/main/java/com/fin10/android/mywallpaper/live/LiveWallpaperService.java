@@ -1,4 +1,4 @@
-package com.fin10.android.mywallpaper;
+package com.fin10.android.mywallpaper.live;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -13,8 +13,10 @@ import android.view.SurfaceHolder;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.model.WallpaperChanger;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
+import com.fin10.android.mywallpaper.settings.PreferenceUtils;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -28,12 +30,14 @@ public final class LiveWallpaperService extends WallpaperService {
     public void onCreate() {
         super.onCreate();
         registerReceiver(mReceiver, WallpaperChanger.Receiver.getIntentFilter());
+        WallpaperChangeScheduler.start(this, PreferenceUtils.getInterval(this));
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         unregisterReceiver(mReceiver);
+        WallpaperChangeScheduler.stop(this);
     }
 
     @Override

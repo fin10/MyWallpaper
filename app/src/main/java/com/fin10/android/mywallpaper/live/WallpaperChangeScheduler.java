@@ -1,4 +1,4 @@
-package com.fin10.android.mywallpaper.settings;
+package com.fin10.android.mywallpaper.live;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -11,9 +11,6 @@ import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.model.WallpaperChanger;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
 
-import java.util.List;
-import java.util.Random;
-
 public final class WallpaperChangeScheduler extends BroadcastReceiver {
 
     public static void start(@NonNull Context context, long interval) {
@@ -25,7 +22,6 @@ public final class WallpaperChangeScheduler extends BroadcastReceiver {
     public static void stop(@NonNull Context context) {
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         am.cancel(createOperation(context));
-
     }
 
     @NonNull
@@ -36,26 +32,11 @@ public final class WallpaperChangeScheduler extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        String action = intent.getAction();
-        Log.d("action:%s", action);
-        List<WallpaperModel> models = WallpaperModel.getModels();
-        int count = models.size();
-        if (count <= 1) {
-            stop(context);
-            return;
-        }
-
-        if (Intent.ACTION_BOOT_COMPLETED.equals(action)) {
-            start(context, PreferenceUtils.getInterval(context));
+        WallpaperModel model = WallpaperModel.sample();
+        if (model != null) {
+            WallpaperChanger.changeWallpaper(context, model.getId());
         } else {
-            Random random = new Random();
-            while (count > 1) {
-                WallpaperModel model = models.get(random.nextInt(count));
-                if (!WallpaperChanger.isCurrentWallpaper(context, model.getId())) {
-                    WallpaperChanger.changeWallpaper(context, model.getId());
-                    break;
-                }
-            }
+            Log.e("There is no wallpapers.");
         }
     }
 }

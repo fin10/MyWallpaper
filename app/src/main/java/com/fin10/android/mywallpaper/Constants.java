@@ -1,13 +1,13 @@
 package com.fin10.android.mywallpaper;
 
-public class Constants {
+class Constants {
 
     private Constants() {
     }
 
-    public static final class FileProvider {
+    static final class FileProvider {
 
-        public static final String AUTHORITY = BuildConfig.APPLICATION_ID + ".provider";
+        static final String AUTHORITY = BuildConfig.APPLICATION_ID + ".provider";
 
         private FileProvider() {
         }

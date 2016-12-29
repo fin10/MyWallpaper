@@ -12,6 +12,7 @@ import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.drive.LoginActivity;
 import com.fin10.android.mywallpaper.drive.SyncScheduler;
+import com.fin10.android.mywallpaper.live.WallpaperChangeScheduler;
 
 public final class SettingsFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener {
 

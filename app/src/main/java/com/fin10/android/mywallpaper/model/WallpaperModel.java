@@ -21,6 +21,7 @@ import org.greenrobot.eventbus.EventBus;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.Collections;
 import java.util.List;
 
 @Table(database = WallpaperDatabase.class)
@@ -137,6 +138,15 @@ public final class WallpaperModel extends BaseModel {
         long id = model.getId();
         model.delete();
         EventBus.getDefault().post(new RemoveEvent(id));
+    }
+
+    @Nullable
+    public static WallpaperModel sample() {
+        List<WallpaperModel> models = getModels();
+        if (models.isEmpty()) return null;
+
+        Collections.shuffle(models);
+        return models.get(0);
     }
 
     public long getId() {

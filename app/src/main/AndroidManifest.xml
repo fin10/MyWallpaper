@@ -23,8 +23,8 @@
             >
 
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
 
@@ -47,11 +47,11 @@
             >
 
             <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-                <category android:name="android.intent.category.DEFAULT" />
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
 
                 <data android:mimeType="image/*"/>
-                <data android:mimeType="text/plain" />
+                <data android:mimeType="text/plain"/>
             </intent-filter>
 
             <intent-filter>
@@ -79,16 +79,6 @@
                 android:resource="@xml/filepaths"/>
         </provider>
 
-        <receiver
-            android:name=".settings.WallpaperChangeScheduler"
-            android:exported="false"
-            >
-
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
-            </intent-filter>
-        </receiver>
-
         <service
             android:name=".drive.SyncScheduler$SyncService"
             android:exported="false"
@@ -106,8 +96,14 @@
             android:theme="@style/TransparentAppTheme"
             />
 
+        <receiver
+            android:name=".live.WallpaperChangeScheduler"
+            android:exported="false"
+            android:process=":live_wallpaper"
+            />
+
         <service
-            android:name=".LiveWallpaperService"
+            android:name=".live.LiveWallpaperService"
             android:exported="true"
             android:permission="android.permission.BIND_WALLPAPER"
             android:process=":live_wallpaper"

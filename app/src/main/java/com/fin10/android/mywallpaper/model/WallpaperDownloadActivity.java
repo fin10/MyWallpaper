@@ -18,21 +18,20 @@ import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
 import android.text.TextUtils;
+import android.util.SparseArray;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.fin10.android.mywallpaper.BuildConfig;
 import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.MainActivity;
 import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.Utils;
 import com.fin10.android.mywallpaper.drive.SyncScheduler;
 import com.fin10.android.mywallpaper.settings.PreferenceUtils;
-import com.fin10.android.mywallpaper.settings.WallpaperChangeScheduler;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
@@ -87,16 +86,18 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
 
     public static final class DownloadService extends Service {
 
-        private static final String INTENT_ACTION_CANCEL_NOTIFICATION = "cancel_notification";
-        private static final String INTENT_ACTION_DOWNLOAD_WALLPAPER = "download_wallpaper";
+        private static final String ACTION_CANCEL_NOTIFICATION = BuildConfig.APPLICATION_ID + ".action.cancel_notification";
+        private static final String ACTION_DOWNLOAD_WALLPAPER = BuildConfig.APPLICATION_ID + ".action.download_wallpaper";
+        private static final String EXTRA_ID = BuildConfig.APPLICATION_ID + ".extra.id";
+        private static final String EXTRA_URI = BuildConfig.APPLICATION_ID + ".extra.uri";
 
-        private final Map<Integer, AsyncTask> mTaskMap = new HashMap<>();
+        private final SparseArray<AsyncTask> mTaskMap = new SparseArray<>();
 
         private static void download(@NonNull Context context, @NonNull Uri uri) {
             Intent i = new Intent(context, DownloadService.class);
-            i.setAction(INTENT_ACTION_DOWNLOAD_WALLPAPER);
-            i.putExtra("id", uri.hashCode());
-            i.putExtra("uri", uri);
+            i.setAction(ACTION_DOWNLOAD_WALLPAPER);
+            i.putExtra(EXTRA_ID, uri.hashCode());
+            i.putExtra(EXTRA_URI, uri);
             context.startService(i);
         }
 
@@ -154,8 +155,8 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
         @NonNull
         private static PendingIntent createCancelPendingIntent(@NonNull Context context, int id) {
             Intent intent = new Intent(context, DownloadService.class);
-            intent.setAction(INTENT_ACTION_CANCEL_NOTIFICATION);
-            intent.putExtra("id", id);
+            intent.setAction(ACTION_CANCEL_NOTIFICATION);
+            intent.putExtra(EXTRA_ID, id);
             return PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         }
 
@@ -168,23 +169,27 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
         @Override
         public int onStartCommand(Intent intent, int flags, final int startId) {
             String action = intent.getAction();
-            final int id = intent.getIntExtra("id", -1);
+            final int id = intent.getIntExtra(EXTRA_ID, -1);
             if (id == -1) {
                 Log.e("There is no id.");
                 stopSelf();
                 return Service.START_NOT_STICKY;
             }
 
-            if (INTENT_ACTION_CANCEL_NOTIFICATION.equals(action)) {
+            if (ACTION_CANCEL_NOTIFICATION.equals(action)) {
                 Log.d("cancel %d notification", id);
                 NotificationManagerCompat.from(this).cancel(id);
-                AsyncTask task = mTaskMap.remove(id);
-                if (task != null) task.cancel(true);
-                else Log.e("%d task does not exist.", id);
+                AsyncTask task = mTaskMap.get(id);
+                if (task != null) {
+                    mTaskMap.delete(id);
+                    task.cancel(true);
+                } else {
+                    Log.e("%d task does not exist.", id);
+                }
                 stopSelf();
 
-            } else if (INTENT_ACTION_DOWNLOAD_WALLPAPER.equals(action)) {
-                final Uri uri = intent.getParcelableExtra("uri");
+            } else if (ACTION_DOWNLOAD_WALLPAPER.equals(action)) {
+                final Uri uri = intent.getParcelableExtra(EXTRA_URI);
                 Log.d("uri:%s", uri);
                 if (uri == null) {
                     Log.e("the intent has no uri.");
@@ -229,10 +234,6 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
                     @Override
                     protected void onPostExecute(@Nullable Bitmap result) {
                         if (result != null) {
-                            if (PreferenceUtils.isAutoChangeEnabled(getBaseContext())) {
-                                WallpaperChangeScheduler.start(getBaseContext(), PreferenceUtils.getInterval(getBaseContext()));
-                            }
-
                             NotificationManagerCompat.from(getBaseContext())
                                     .notify(uri.hashCode(), createDownloadedNotification(getBaseContext(), result));
                             Toast.makeText(getBaseContext(), R.string.new_wallpaper_is_added, Toast.LENGTH_SHORT).show();
