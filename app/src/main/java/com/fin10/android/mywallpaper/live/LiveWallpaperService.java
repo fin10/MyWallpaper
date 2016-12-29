@@ -1,7 +1,10 @@
 package com.fin10.android.mywallpaper.live;
 
+import android.app.WallpaperManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -13,6 +16,7 @@ import android.view.SurfaceHolder;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.fin10.android.mywallpaper.BuildConfig;
 import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.model.WallpaperChanger;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
@@ -26,15 +30,28 @@ public final class LiveWallpaperService extends WallpaperService {
 
     private final BroadcastReceiver mReceiver = new WallpaperChanger.Receiver();
 
+    @NonNull
+    public static Intent getIntentForSetLiveWallpaper() {
+        Intent intent = new Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER);
+        intent.putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
+                new ComponentName(BuildConfig.APPLICATION_ID, LiveWallpaperService.class.getName()));
+        return intent;
+    }
+
     @Override
     public void onCreate() {
+        Log.d("enter");
         super.onCreate();
         registerReceiver(mReceiver, WallpaperChanger.Receiver.getIntentFilter());
-        WallpaperChangeScheduler.start(this, PreferenceUtils.getInterval(this));
+
+        if (PreferenceUtils.isAutoChangeEnabled(this)) {
+            WallpaperChangeScheduler.start(this, PreferenceUtils.getInterval(this));
+        }
     }
 
     @Override
     public void onDestroy() {
+        Log.d("enter");
         super.onDestroy();
         unregisterReceiver(mReceiver);
         WallpaperChangeScheduler.stop(this);

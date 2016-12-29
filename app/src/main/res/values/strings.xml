@@ -32,4 +32,6 @@
     <string name="backup_and_restore"><![CDATA[Backup & restore]]></string>
     <string name="changing">Changing…</string>
     <string name="set_live_wallpaper">Set Live wallpaper</string>
+    <string name="it_needs_to_set_live_wallpaper">It needs to set live wallpaper.</string>
+    <string name="set">Set</string>
 </resources>

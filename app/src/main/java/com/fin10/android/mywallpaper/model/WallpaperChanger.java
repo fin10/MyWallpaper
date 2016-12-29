@@ -37,6 +37,7 @@ public final class WallpaperChanger {
         model.incrementAppliedCount();
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
         pref.edit().putLong(context.getString(R.string.pref_key_current_wallpaper_id), model.getId()).apply();
+
         Intent intent = new Intent(Receiver.ACTION_WALLPAPER_CHANGED);
         intent.putExtra(Receiver.EXTRA_ID, model.getId());
         context.sendBroadcast(intent);
