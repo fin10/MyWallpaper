@@ -16,8 +16,8 @@ import org.junit.runner.RunWith;
 @RunWith(AndroidJUnit4.class)
 public final class PreferenceModelTest {
 
-    private static final String KEY_FOR_TEST = "_test_key";
-    private static final String VALUE_FOR_TEST = "_test_value";
+    private static final String TEST_KEY = "_test_key";
+    private static final String TEST_VALUE = "_test_value";
 
     private boolean initialized = false;
 
@@ -32,31 +32,31 @@ public final class PreferenceModelTest {
     @After
     public void tearDown() throws Exception {
         SQLite.delete(PreferenceModel.class)
-                .where(PreferenceModel_Table.key.eq(KEY_FOR_TEST))
+                .where(PreferenceModel_Table.key.eq(TEST_KEY))
                 .execute();
     }
 
     @Test
     public void testSetValue() throws Exception {
-        Assert.assertNull(PreferenceModel.getValue(KEY_FOR_TEST));
-        PreferenceModel.setValue(KEY_FOR_TEST, VALUE_FOR_TEST);
+        Assert.assertNull(PreferenceModel.getValue(TEST_KEY));
+        PreferenceModel.setValue(TEST_KEY, TEST_VALUE);
 
         PreferenceModel model = SQLite.select()
                 .from(PreferenceModel.class)
-                .where(PreferenceModel_Table.key.eq(KEY_FOR_TEST))
+                .where(PreferenceModel_Table.key.eq(TEST_KEY))
                 .querySingle();
-        Assert.assertEquals(VALUE_FOR_TEST, model.mValue);
+        Assert.assertEquals(TEST_VALUE, model.mValue);
     }
 
     @Test
     public void testGetValue() throws Exception {
-        Assert.assertNull(PreferenceModel.getValue(KEY_FOR_TEST));
+        Assert.assertNull(PreferenceModel.getValue(TEST_KEY));
 
         PreferenceModel model = new PreferenceModel();
-        model.mKey = KEY_FOR_TEST;
-        model.mValue = VALUE_FOR_TEST;
+        model.mKey = TEST_KEY;
+        model.mValue = TEST_VALUE;
         model.insert();
 
-        Assert.assertEquals(VALUE_FOR_TEST, PreferenceModel.getValue(KEY_FOR_TEST));
+        Assert.assertEquals(TEST_VALUE, PreferenceModel.getValue(TEST_KEY));
     }
 }
