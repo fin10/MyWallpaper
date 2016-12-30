@@ -1,6 +1,7 @@
 package com.fin10.android.mywallpaper.settings;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.fin10.android.mywallpaper.model.WallpaperDatabase;
 import com.raizlabs.android.dbflow.annotation.Column;
@@ -27,13 +28,13 @@ public final class PreferenceModel extends BaseModel {
         else model.insert();
     }
 
-    @NonNull
+    @Nullable
     public static String getValue(@NonNull String key) {
         PreferenceModel model = SQLite.select()
                 .from(PreferenceModel.class)
                 .where(PreferenceModel_Table.key.eq(key))
                 .querySingle();
 
-        return model != null ? model.mValue : "";
+        return model != null ? model.mValue : null;
     }
 }
