@@ -15,7 +15,7 @@ import android.view.View;
 
 import com.fin10.android.mywallpaper.MainActivity;
 import com.fin10.android.mywallpaper.R;
-import com.fin10.android.mywallpaper.settings.PreferenceUtils;
+import com.fin10.android.mywallpaper.settings.PreferenceModel;
 import com.ugurtekbas.fadingindicatorlibrary.FadingIndicator;
 
 import java.util.ArrayList;
@@ -48,7 +48,7 @@ public final class TutorialActivity extends AppCompatActivity implements ViewPag
 
     public void onClick(View view) {
         startActivity(new Intent(this, MainActivity.class));
-        PreferenceUtils.setTutorialEnabled(this, false);
+        PreferenceModel.setTutorialEnabled(this, false);
         finish();
     }
 

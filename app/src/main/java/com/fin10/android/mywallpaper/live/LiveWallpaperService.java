@@ -20,7 +20,7 @@ import com.fin10.android.mywallpaper.BuildConfig;
 import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.model.WallpaperChanger;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
-import com.fin10.android.mywallpaper.settings.PreferenceUtils;
+import com.fin10.android.mywallpaper.settings.PreferenceModel;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -44,8 +44,8 @@ public final class LiveWallpaperService extends WallpaperService {
         super.onCreate();
         registerReceiver(mReceiver, WallpaperChanger.Receiver.getIntentFilter());
 
-        if (PreferenceUtils.isAutoChangeEnabled(this)) {
-            WallpaperChangeScheduler.start(this, PreferenceUtils.getInterval(this));
+        if (PreferenceModel.isAutoChangeEnabled(this)) {
+            WallpaperChangeScheduler.start(this, PreferenceModel.getInterval(this));
         }
     }
 
@@ -80,7 +80,7 @@ public final class LiveWallpaperService extends WallpaperService {
         public void onSurfaceChanged(final SurfaceHolder holder, int format, int width, int height) {
             super.onSurfaceChanged(holder, format, width, height);
             Log.d("enter");
-            long id = WallpaperChanger.getCurrentWallpaper(getBaseContext());
+            long id = PreferenceModel.getCurrentWallpaper(getBaseContext());
             updateWallpaper(getBaseContext(), holder, width, height, id);
         }
 

@@ -29,7 +29,7 @@ import com.bumptech.glide.Glide;
 import com.fin10.android.mywallpaper.drive.SyncScheduler;
 import com.fin10.android.mywallpaper.model.WallpaperChanger;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
-import com.fin10.android.mywallpaper.settings.PreferenceUtils;
+import com.fin10.android.mywallpaper.settings.PreferenceModel;
 import com.fin10.android.mywallpaper.widget.GridSpacingItemDecoration;
 
 import org.greenrobot.eventbus.EventBus;
@@ -121,7 +121,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
             mAdapter.setSelectionMode(false);
             mActionMode = null;
 
-            if (PreferenceUtils.isSyncEnabled(getActivity())) {
+            if (PreferenceModel.isSyncEnabled(getActivity())) {
                 mRefreshLayout.setEnabled(true);
             }
         }
@@ -175,7 +175,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         mRefreshLayout.setColorSchemeResources(R.color.primary);
         mRefreshLayout.setOnRefreshListener(this);
 
-        if (PreferenceUtils.isSyncEnabled(getActivity())) {
+        if (PreferenceModel.isSyncEnabled(getActivity())) {
             SyncScheduler.sync(getActivity());
             mRefreshLayout.setEnabled(true);
         } else {
@@ -188,7 +188,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
     @Override
     public void onResume() {
         super.onResume();
-        if (PreferenceUtils.isSyncEnabled(getActivity())) {
+        if (PreferenceModel.isSyncEnabled(getActivity())) {
             SyncScheduler.sync(getActivity());
             mRefreshLayout.setEnabled(true);
         } else {
@@ -311,7 +311,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             WallpaperModel model = mModels.get(position);
-            boolean marked = WallpaperChanger.getCurrentWallpaper(holder.itemView.getContext()) == model.getId();
+            boolean marked = PreferenceModel.getCurrentWallpaper(holder.itemView.getContext()) == model.getId();
             if (mSelectionMode) {
                 ((WallpaperViewHolder) holder).setModel(model, marked, mSelectedModels.contains(model));
             } else {
@@ -394,7 +394,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                 WallpaperModel.removeModel(model);
             }
 
-            if (PreferenceUtils.isSyncEnabled(context)) {
+            if (PreferenceModel.isSyncEnabled(context)) {
                 SyncScheduler.dismiss(context, models);
             }
         }

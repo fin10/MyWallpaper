@@ -36,15 +36,15 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
 
         Context context = getActivity();
         SwitchPreference switchPreference = (SwitchPreference) findPreference(getString(R.string.pref_key_auto_change_enabled));
-        switchPreference.setChecked(PreferenceUtils.isAutoChangeEnabled(context));
+        switchPreference.setChecked(PreferenceModel.isAutoChangeEnabled(context));
         switchPreference.setOnPreferenceChangeListener(this);
 
         PeriodPreference periodPreference = (PeriodPreference) findPreference(getString(R.string.pref_key_auto_change_period));
-        periodPreference.setPeriod(PreferenceUtils.getPeriod(context));
+        periodPreference.setPeriod(PreferenceModel.getPeriod(context));
         periodPreference.setOnPreferenceChangeListener(this);
 
         switchPreference = (SwitchPreference) findPreference(getString(R.string.pref_key_sync_enabled));
-        switchPreference.setChecked(PreferenceUtils.isSyncEnabled(context));
+        switchPreference.setChecked(PreferenceModel.isSyncEnabled(context));
         switchPreference.setOnPreferenceChangeListener(this);
     }
 
@@ -71,7 +71,7 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
             case REQUEST_CODE_LOGIN: {
                 if (resultCode == Activity.RESULT_OK) {
                     Context context = getActivity();
-                    PreferenceUtils.setSyncEnabled(context, true);
+                    PreferenceModel.setSyncEnabled(context, true);
                     SwitchPreference pref = (SwitchPreference) findPreference(getString(R.string.pref_key_sync_enabled));
                     pref.setChecked(true);
                     SyncScheduler.start(context);
@@ -80,7 +80,7 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
             }
             case REQUEST_CODE_LOGOUT: {
                 Context context = getActivity();
-                PreferenceUtils.setSyncEnabled(context, false);
+                PreferenceModel.setSyncEnabled(context, false);
                 SwitchPreference pref = (SwitchPreference) findPreference(getString(R.string.pref_key_sync_enabled));
                 pref.setChecked(false);
                 SyncScheduler.stop(context);
@@ -105,7 +105,7 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
             }
         } else if (TextUtils.equals(key, getString(R.string.pref_key_auto_change_period)) && preference.isEnabled()) {
             WallpaperChangeScheduler.stop(getActivity());
-            WallpaperChangeScheduler.start(getActivity(), PreferenceUtils.getInterval(getActivity()));
+            WallpaperChangeScheduler.start(getActivity(), PreferenceModel.getInterval(getActivity()));
         } else if (TextUtils.equals(key, getString(R.string.pref_key_sync_enabled))) {
             boolean value = (boolean) newValue;
             if (value) LoginActivity.login(this, REQUEST_CODE_LOGIN);

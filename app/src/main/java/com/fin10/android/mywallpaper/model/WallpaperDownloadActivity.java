@@ -28,7 +28,7 @@ import com.fin10.android.mywallpaper.MainActivity;
 import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.Utils;
 import com.fin10.android.mywallpaper.drive.SyncScheduler;
-import com.fin10.android.mywallpaper.settings.PreferenceUtils;
+import com.fin10.android.mywallpaper.settings.PreferenceModel;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -213,7 +213,7 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
                                     .get();
 
                             WallpaperModel result = WallpaperModel.addModel(getBaseContext(), uri.toString(), file);
-                            if (result != null && PreferenceUtils.isSyncEnabled(getBaseContext())) {
+                            if (result != null && PreferenceModel.isSyncEnabled(getBaseContext())) {
                                 SyncScheduler.upload(getBaseContext(), result);
                             }
 

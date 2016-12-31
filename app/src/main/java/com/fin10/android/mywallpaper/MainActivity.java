@@ -19,7 +19,7 @@ import android.view.View;
 
 import com.fin10.android.mywallpaper.live.LiveWallpaperService;
 import com.fin10.android.mywallpaper.model.WallpaperChanger;
-import com.fin10.android.mywallpaper.settings.PreferenceUtils;
+import com.fin10.android.mywallpaper.settings.PreferenceModel;
 import com.fin10.android.mywallpaper.settings.SettingsActivity;
 import com.fin10.android.mywallpaper.tutorial.TutorialActivity;
 
@@ -36,7 +36,7 @@ public final class MainActivity extends AppCompatActivity implements View.OnClic
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (PreferenceUtils.isTutorialEnabled(this)) {
+        if (PreferenceModel.isTutorialEnabled(this)) {
             startActivity(new Intent(this, TutorialActivity.class));
             finish();
             return;

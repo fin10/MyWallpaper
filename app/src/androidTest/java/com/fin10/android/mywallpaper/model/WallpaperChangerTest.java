@@ -6,6 +6,8 @@ import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.fin10.android.mywallpaper.settings.PreferenceModel;
+
 import junit.framework.Assert;
 
 import org.greenrobot.eventbus.EventBus;
@@ -21,23 +23,25 @@ public final class WallpaperChangerTest {
     private final BroadcastReceiver receiver = new WallpaperChanger.Receiver();
     private final Thread thread = Thread.currentThread();
     private final Context context = InstrumentationRegistry.getTargetContext();
+    private final WallpaperModel model = WallpaperModelTest.createTestModel();
 
     @Before
     public void setUp() throws Exception {
         context.registerReceiver(receiver, WallpaperChanger.Receiver.getIntentFilter());
         EventBus.getDefault().register(this);
+        model.insert();
     }
 
     @After
     public void tearDown() throws Exception {
         context.unregisterReceiver(receiver);
         EventBus.getDefault().unregister(this);
+        model.delete();
     }
 
     @Test
     public void testChangeWallpaper() throws Exception {
-        long id = WallpaperChanger.getCurrentWallpaper(context);
-        WallpaperChanger.changeWallpaper(context, id);
+        WallpaperChanger.changeWallpaper(context, model.getId());
 
         try {
             thread.join(1000);
@@ -45,6 +49,8 @@ public final class WallpaperChangerTest {
         } catch (InterruptedException e) {
             //
         }
+
+        Assert.assertEquals(model.getId(), PreferenceModel.getCurrentWallpaper(context));
     }
 
     @Subscribe

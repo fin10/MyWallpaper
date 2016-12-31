@@ -31,6 +31,18 @@ public final class WallpaperModelTest {
     private final Context context = InstrumentationRegistry.getTargetContext();
     private boolean initialized = false;
 
+    @NonNull
+    static WallpaperModel createTestModel() {
+        WallpaperModel model = new WallpaperModel();
+        model.mId = TEST_ID;
+        model.mUserId = TEST_USER_ID;
+        model.mSource = TEST_SOURCE;
+        model.mImagePath = TEST_IMAGE_PATH;
+        model.mCreationTime = TEST_CREATION_TIME;
+        model.mAppliedCount = 0;
+        return model;
+    }
+
     @Before
     public void setUp() throws Exception {
         EventBus.getDefault().register(this);
@@ -79,12 +91,7 @@ public final class WallpaperModelTest {
 
     @Test
     public void testGetModels() throws Exception {
-        WallpaperModel model = new WallpaperModel();
-        model.mId = TEST_ID;
-        model.mUserId = TEST_USER_ID;
-        model.mSource = TEST_SOURCE;
-        model.mImagePath = TEST_IMAGE_PATH;
-        model.mCreationTime = TEST_CREATION_TIME;
+        WallpaperModel model = createTestModel();
         model.insert();
 
         List<WallpaperModel> models = WallpaperModel.getModels();
@@ -105,12 +112,7 @@ public final class WallpaperModelTest {
 
     @Test
     public void testGetModelsWithUserId() throws Exception {
-        WallpaperModel model = new WallpaperModel();
-        model.mId = TEST_ID;
-        model.mUserId = TEST_USER_ID;
-        model.mSource = TEST_SOURCE;
-        model.mImagePath = TEST_IMAGE_PATH;
-        model.mCreationTime = TEST_CREATION_TIME;
+        WallpaperModel model = createTestModel();
         model.insert();
 
         List<WallpaperModel> models = WallpaperModel.getModels(TEST_USER_ID);
@@ -124,12 +126,8 @@ public final class WallpaperModelTest {
     @Test
     public void testRemoveModel() throws Exception {
         File file = File.createTempFile("_test", ".tmp");
-        WallpaperModel model = new WallpaperModel();
-        model.mId = TEST_ID;
-        model.mUserId = TEST_USER_ID;
-        model.mSource = TEST_SOURCE;
+        WallpaperModel model = createTestModel();
         model.mImagePath = file.getAbsolutePath();
-        model.mCreationTime = TEST_CREATION_TIME;
         model.insert();
 
         WallpaperModel.removeModel(model);
@@ -150,14 +148,9 @@ public final class WallpaperModelTest {
 
     @Test
     public void testIncrementAppliedCount() throws Exception {
-        WallpaperModel model = new WallpaperModel();
-        model.mId = TEST_ID;
-        model.mUserId = TEST_USER_ID;
-        model.mImagePath = TEST_IMAGE_PATH;
-        model.mCreationTime = TEST_CREATION_TIME;
-        model.mAppliedCount = 0;
+        WallpaperModel model = createTestModel();
         model.insert();
-
+        long beforeCount = model.mAppliedCount;
         model.incrementAppliedCount();
 
         try {
@@ -167,7 +160,7 @@ public final class WallpaperModelTest {
             //
         }
 
-        Assert.assertEquals(1, model.mAppliedCount);
+        Assert.assertEquals(beforeCount + 1, model.mAppliedCount);
     }
 
     @Subscribe
