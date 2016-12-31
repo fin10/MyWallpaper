@@ -2,8 +2,6 @@ package com.fin10.android.mywallpaper.settings;
 
 import android.app.AlarmManager;
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
@@ -15,8 +13,7 @@ public final class PreferenceUtils {
     }
 
     public static void setTutorialEnabled(@NonNull Context context, boolean enabled) {
-        String key = context.getString(R.string.pref_key_tutorial_enabled);
-        PreferenceModel.setValue(key, Boolean.toString(enabled));
+        PreferenceModel.setValue(context.getString(R.string.pref_key_tutorial_enabled), Boolean.toString(enabled));
     }
 
     public static boolean isTutorialEnabled(@NonNull Context context) {
@@ -25,16 +22,7 @@ public final class PreferenceUtils {
     }
 
     public static void setAutoChangeEnabled(@NonNull Context context, boolean enabled) {
-        String key = context.getString(R.string.pref_key_auto_change_enabled);
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-        pref.edit().putBoolean(key, enabled).apply();
-
-        PreferenceModel.setValue(key, Boolean.toString(enabled));
-    }
-
-    public static boolean isSyncEnabled(@NonNull Context context) {
-        String value = PreferenceModel.getValue(context.getString(R.string.pref_key_sync_enabled));
-        return !TextUtils.isEmpty(value) && Boolean.parseBoolean(value);
+        PreferenceModel.setValue(context.getString(R.string.pref_key_auto_change_enabled), Boolean.toString(enabled));
     }
 
     public static boolean isAutoChangeEnabled(@NonNull Context context) {
@@ -42,11 +30,17 @@ public final class PreferenceUtils {
         return !TextUtils.isEmpty(value) && Boolean.parseBoolean(value);
     }
 
+    public static void setSyncEnabled(@NonNull Context context, boolean enabled) {
+        PreferenceModel.setValue(context.getString(R.string.pref_key_sync_enabled), Boolean.toString(enabled));
+    }
+
+    public static boolean isSyncEnabled(@NonNull Context context) {
+        String value = PreferenceModel.getValue(context.getString(R.string.pref_key_sync_enabled));
+        return !TextUtils.isEmpty(value) && Boolean.parseBoolean(value);
+    }
+
     public static void setPeriod(@NonNull Context context, int period) {
-        String key = context.getString(R.string.pref_key_auto_change_period);
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-        pref.edit().putInt(key, period).apply();
-        PreferenceModel.setValue(key, Integer.toString(period));
+        PreferenceModel.setValue(context.getString(R.string.pref_key_auto_change_period), Integer.toString(period));
     }
 
     public static int getPeriod(Context context) {
@@ -56,8 +50,7 @@ public final class PreferenceUtils {
 
     public static long getInterval(@NonNull Context context) {
         long interval = AlarmManager.INTERVAL_DAY;
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-        int period = pref.getInt(context.getString(R.string.pref_key_auto_change_period), PeriodPreference.Period.USUALLY);
+        int period = getPeriod(context);
         switch (period) {
             case PeriodPreference.Period.SOMETIMES:
                 interval = 3 * AlarmManager.INTERVAL_DAY;

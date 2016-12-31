@@ -8,6 +8,7 @@
         <SwitchPreference
             android:defaultValue="false"
             android:key="@string/pref_key_auto_change_enabled"
+            android:persistent="false"
             android:summary="@string/change_wallpaper_automatically"
             android:title="@string/auto_change"
             />
@@ -16,11 +17,13 @@
             android:defaultValue="0"
             android:dependency="@string/pref_key_auto_change_enabled"
             android:key="@string/pref_key_auto_change_period"
+            android:persistent="false"
             />
 
         <SwitchPreference
             android:defaultValue="false"
             android:key="@string/pref_key_sync_enabled"
+            android:persistent="false"
             android:summary="@string/synchronize_wallpapers_via_google_drive"
             android:title="@string/backup_and_restore"
             />

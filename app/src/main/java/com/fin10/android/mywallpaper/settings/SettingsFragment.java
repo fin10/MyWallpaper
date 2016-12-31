@@ -3,6 +3,7 @@ package com.fin10.android.mywallpaper.settings;
 import android.app.Activity;
 import android.app.WallpaperInfo;
 import android.app.WallpaperManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.Preference;
@@ -33,9 +34,18 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.settings);
 
-        findPreference(getString(R.string.pref_key_auto_change_enabled)).setOnPreferenceChangeListener(this);
-        findPreference(getString(R.string.pref_key_auto_change_period)).setOnPreferenceChangeListener(this);
-        findPreference(getString(R.string.pref_key_sync_enabled)).setOnPreferenceChangeListener(this);
+        Context context = getActivity();
+        SwitchPreference switchPreference = (SwitchPreference) findPreference(getString(R.string.pref_key_auto_change_enabled));
+        switchPreference.setChecked(PreferenceUtils.isAutoChangeEnabled(context));
+        switchPreference.setOnPreferenceChangeListener(this);
+
+        PeriodPreference periodPreference = (PeriodPreference) findPreference(getString(R.string.pref_key_auto_change_period));
+        periodPreference.setPeriod(PreferenceUtils.getPeriod(context));
+        periodPreference.setOnPreferenceChangeListener(this);
+
+        switchPreference = (SwitchPreference) findPreference(getString(R.string.pref_key_sync_enabled));
+        switchPreference.setChecked(PreferenceUtils.isSyncEnabled(context));
+        switchPreference.setOnPreferenceChangeListener(this);
     }
 
     @Override
@@ -60,24 +70,28 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
         switch (requestCode) {
             case REQUEST_CODE_LOGIN: {
                 if (resultCode == Activity.RESULT_OK) {
+                    Context context = getActivity();
+                    PreferenceUtils.setSyncEnabled(context, true);
                     SwitchPreference pref = (SwitchPreference) findPreference(getString(R.string.pref_key_sync_enabled));
                     pref.setChecked(true);
-                    SyncScheduler.start(getActivity());
+                    SyncScheduler.start(context);
                 }
                 break;
             }
             case REQUEST_CODE_LOGOUT: {
-                SyncScheduler.stop(getActivity());
+                Context context = getActivity();
+                PreferenceUtils.setSyncEnabled(context, false);
                 SwitchPreference pref = (SwitchPreference) findPreference(getString(R.string.pref_key_sync_enabled));
                 pref.setChecked(false);
+                SyncScheduler.stop(context);
             }
         }
     }
 
     @Override
     public boolean onPreferenceChange(Preference preference, Object newValue) {
-        Log.d("%s, newValue:%s", preference, newValue);
         String key = preference.getKey();
+        Log.d("%s, newValue:%s", key, newValue);
         if (TextUtils.equals(key, getString(R.string.pref_key_auto_change_enabled))) {
             boolean value = (boolean) newValue;
             if (value) {
@@ -99,6 +113,7 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
             return false;
         }
 
+        PreferenceModel.setValue(key, String.valueOf(newValue));
         return true;
     }
 }

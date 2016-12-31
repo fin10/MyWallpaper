@@ -43,7 +43,9 @@ public final class WallpaperModelTest {
     @After
     public void tearDown() throws Exception {
         EventBus.getDefault().unregister(this);
-        SQLite.delete(WallpaperModel.class).execute();
+        SQLite.delete(WallpaperModel.class)
+                .where(WallpaperModel_Table.user_id.eq(TEST_USER_ID))
+                .execute();
     }
 
     @Test
@@ -79,26 +81,36 @@ public final class WallpaperModelTest {
     public void testGetModels() throws Exception {
         WallpaperModel model = new WallpaperModel();
         model.mId = TEST_ID;
+        model.mUserId = TEST_USER_ID;
         model.mSource = TEST_SOURCE;
         model.mImagePath = TEST_IMAGE_PATH;
         model.mCreationTime = TEST_CREATION_TIME;
         model.insert();
 
         List<WallpaperModel> models = WallpaperModel.getModels();
-        Assert.assertEquals(model.mId, models.get(0).mId);
-        Assert.assertEquals(model.mSource, models.get(0).mSource);
-        Assert.assertEquals(model.mImagePath, models.get(0).mImagePath);
-        Assert.assertEquals(model.mCreationTime, models.get(0).mCreationTime);
+        Assert.assertFalse(models.isEmpty());
+        for (WallpaperModel m : models) {
+            if (m.mUserId.equals(TEST_USER_ID)) {
+                Assert.assertEquals(model.mId, m.mId);
+                Assert.assertEquals(model.mUserId, m.mUserId);
+                Assert.assertEquals(model.mSource, m.mSource);
+                Assert.assertEquals(model.mImagePath, m.mImagePath);
+                Assert.assertEquals(model.mCreationTime, m.mCreationTime);
+                return;
+            }
+        }
+
+        Assert.fail("Not found.");
     }
 
     @Test
     public void testGetModelsWithUserId() throws Exception {
         WallpaperModel model = new WallpaperModel();
         model.mId = TEST_ID;
+        model.mUserId = TEST_USER_ID;
         model.mSource = TEST_SOURCE;
         model.mImagePath = TEST_IMAGE_PATH;
         model.mCreationTime = TEST_CREATION_TIME;
-        model.mUserId = TEST_USER_ID;
         model.insert();
 
         List<WallpaperModel> models = WallpaperModel.getModels(TEST_USER_ID);
@@ -114,6 +126,7 @@ public final class WallpaperModelTest {
         File file = File.createTempFile("_test", ".tmp");
         WallpaperModel model = new WallpaperModel();
         model.mId = TEST_ID;
+        model.mUserId = TEST_USER_ID;
         model.mSource = TEST_SOURCE;
         model.mImagePath = file.getAbsolutePath();
         model.mCreationTime = TEST_CREATION_TIME;
@@ -139,6 +152,7 @@ public final class WallpaperModelTest {
     public void testIncrementAppliedCount() throws Exception {
         WallpaperModel model = new WallpaperModel();
         model.mId = TEST_ID;
+        model.mUserId = TEST_USER_ID;
         model.mImagePath = TEST_IMAGE_PATH;
         model.mCreationTime = TEST_CREATION_TIME;
         model.mAppliedCount = 0;

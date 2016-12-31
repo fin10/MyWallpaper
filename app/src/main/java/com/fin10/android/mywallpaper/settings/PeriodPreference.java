@@ -10,6 +10,8 @@ import com.fin10.android.mywallpaper.R;
 
 public final class PeriodPreference extends Preference implements SeekBar.OnSeekBarChangeListener {
 
+    private int mPeriod;
+
     public PeriodPreference(Context context) {
         super(context);
         init();
@@ -38,14 +40,23 @@ public final class PeriodPreference extends Preference implements SeekBar.OnSeek
     protected void onBindView(View view) {
         super.onBindView(view);
         SeekBar seekBar = (SeekBar) view.findViewById(R.id.seek_bar);
+        seekBar.setProgress(mPeriod);
         seekBar.setOnSeekBarChangeListener(this);
-        seekBar.setProgress(getPersistedInt(1));
+    }
+
+    @Override
+    protected void onSetInitialValue(boolean restoreValue, Object defaultValue) {
+        setPeriod(restoreValue ? getPersistedInt(mPeriod) : (Integer) defaultValue);
     }
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-        persistInt(progress);
-        callChangeListener(progress);
+        if (!callChangeListener(progress)) {
+            seekBar.setProgress(mPeriod);
+            return;
+        }
+
+        setPeriod(progress);
     }
 
     @Override
@@ -56,7 +67,17 @@ public final class PeriodPreference extends Preference implements SeekBar.OnSeek
     public void onStopTrackingTouch(SeekBar seekBar) {
     }
 
-    public interface Period {
+    void setPeriod(int period) {
+        final boolean changed = mPeriod != period;
+        if (changed) {
+            mPeriod = period;
+            persistInt(period);
+            notifyDependencyChange(shouldDisableDependents());
+            notifyChanged();
+        }
+    }
+
+    interface Period {
         int SOMETIMES = 0;
         int USUALLY = 1;
         int FREQUENTLY = 2;

@@ -29,7 +29,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 public final class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private final BroadcastReceiver mReceiver = new WallpaperChanger.Receiver();
+    private BroadcastReceiver mReceiver;
     private Snackbar mSnackBar;
     private View mLiveWallpaperButton;
 
@@ -42,10 +42,11 @@ public final class MainActivity extends AppCompatActivity implements View.OnClic
             return;
         }
 
+        mReceiver = new WallpaperChanger.Receiver();
+        registerReceiver(mReceiver, WallpaperChanger.Receiver.getIntentFilter());
+
         setContentView(R.layout.activity_main);
         EventBus.getDefault().register(this);
-
-        registerReceiver(mReceiver, WallpaperChanger.Receiver.getIntentFilter());
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -101,7 +102,7 @@ public final class MainActivity extends AppCompatActivity implements View.OnClic
     protected void onDestroy() {
         super.onDestroy();
         EventBus.getDefault().unregister(this);
-        unregisterReceiver(mReceiver);
+        if (mReceiver != null) unregisterReceiver(mReceiver);
     }
 
     @Override
