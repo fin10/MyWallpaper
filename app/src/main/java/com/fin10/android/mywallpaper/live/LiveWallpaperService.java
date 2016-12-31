@@ -5,7 +5,9 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -18,6 +20,7 @@ import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.fin10.android.mywallpaper.BuildConfig;
 import com.fin10.android.mywallpaper.Log;
+import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.model.WallpaperChanger;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
 import com.fin10.android.mywallpaper.settings.PreferenceModel;
@@ -97,6 +100,7 @@ public final class LiveWallpaperService extends WallpaperService {
             WallpaperModel model = WallpaperModel.getModel(id);
             if (model == null) {
                 Log.e("[%d] Not found.", id);
+                drawEmptyScreen(holder, width, height);
                 return;
             }
 
@@ -117,6 +121,28 @@ public final class LiveWallpaperService extends WallpaperService {
                             }
                         }
                     });
+        }
+
+        private void drawEmptyScreen(@NonNull SurfaceHolder holder, int width, int height) {
+            Canvas canvas = holder.lockCanvas();
+            if (canvas == null) {
+                Log.e("canvas is null.");
+            } else {
+                try {
+                    Resources res = getResources();
+                    Bitmap bitmap = BitmapFactory.decodeResource(res, R.mipmap.ic_launcher);
+                    int iconWidth, iconHeight = iconWidth = res.getDimensionPixelSize(R.dimen.empty_icon_size);
+                    Rect src = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+                    Rect dst = new Rect(0, 0, iconWidth, iconHeight);
+
+                    canvas.drawColor(0xFF555662);
+                    canvas.translate(width >> 1, height >> 1);
+                    canvas.translate(-iconWidth >> 1, iconHeight >> 1);
+                    canvas.drawBitmap(bitmap, src, dst, null);
+                } finally {
+                    holder.unlockCanvasAndPost(canvas);
+                }
+            }
         }
     }
 }
