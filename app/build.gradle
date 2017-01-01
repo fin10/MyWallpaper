@@ -6,11 +6,11 @@ android {
     buildToolsVersion "25.0.2"
 
     defaultConfig {
-        applicationId "com.fin10.android.mywallpaper.dev"
+        applicationId "com.fin10.android.mywallpaper"
         minSdkVersion 21
         targetSdkVersion 25
         versionCode 5
-        versionName "1.2.0dev"
+        versionName "1.2.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

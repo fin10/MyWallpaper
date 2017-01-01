@@ -32,7 +32,7 @@ public final class WallpaperModelTest {
     private boolean initialized = false;
 
     @NonNull
-    static WallpaperModel createTestModel() {
+    public static WallpaperModel createTestModel() {
         WallpaperModel model = new WallpaperModel();
         model.mId = TEST_ID;
         model.mUserId = TEST_USER_ID;
@@ -56,7 +56,7 @@ public final class WallpaperModelTest {
     public void tearDown() throws Exception {
         EventBus.getDefault().unregister(this);
         SQLite.delete(WallpaperModel.class)
-                .where(WallpaperModel_Table.user_id.eq(TEST_USER_ID))
+                .where(WallpaperModel_Table.source.eq(TEST_SOURCE))
                 .execute();
     }
 
