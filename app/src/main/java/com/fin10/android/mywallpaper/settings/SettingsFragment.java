@@ -1,8 +1,6 @@
 package com.fin10.android.mywallpaper.settings;
 
 import android.app.Activity;
-import android.app.WallpaperInfo;
-import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,7 +12,6 @@ import android.support.v4.app.ActivityCompat;
 import android.text.TextUtils;
 import android.view.View;
 
-import com.fin10.android.mywallpaper.BuildConfig;
 import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.drive.LoginActivity;
@@ -95,8 +92,7 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
         if (TextUtils.equals(key, getString(R.string.pref_key_auto_change_enabled))) {
             boolean value = (boolean) newValue;
             if (value) {
-                WallpaperInfo info = WallpaperManager.getInstance(getActivity()).getWallpaperInfo();
-                if (info == null || !BuildConfig.APPLICATION_ID.equals(info.getPackageName())) {
+                if (!LiveWallpaperService.isSet(getActivity())) {
                     if (!mSnackBar.isShown()) mSnackBar.show();
                     return false;
                 }

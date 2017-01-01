@@ -2,7 +2,6 @@ package com.fin10.android.mywallpaper;
 
 import android.app.Dialog;
 import android.app.Fragment;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -10,6 +9,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
@@ -27,6 +28,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.fin10.android.mywallpaper.drive.SyncScheduler;
+import com.fin10.android.mywallpaper.live.LiveWallpaperService;
 import com.fin10.android.mywallpaper.model.WallpaperChanger;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
 import com.fin10.android.mywallpaper.settings.PreferenceModel;
@@ -126,7 +128,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
             }
         }
     };
-    private ProgressDialog mLoadingDialog;
+    private Snackbar mSnackBar;
     private RecyclerView.AdapterDataObserver mObserver = new RecyclerView.AdapterDataObserver() {
 
         @Override
@@ -186,6 +188,21 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
     }
 
     @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        mSnackBar = Snackbar.make(getActivity().findViewById(R.id.coordinator_layout), R.string.it_needs_to_set_live_wallpaper, Snackbar.LENGTH_SHORT);
+        mSnackBar.setActionTextColor(ActivityCompat.getColor(getActivity(), R.color.primary));
+        mSnackBar.setAction(R.string.set, new View.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+                startActivity(LiveWallpaperService.getIntentForSetLiveWallpaper());
+                mSnackBar.dismiss();
+            }
+        });
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         if (PreferenceModel.isSyncEnabled(getActivity())) {
@@ -222,15 +239,12 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
             }
         } else {
             try {
-                WallpaperModel model = mAdapter.mModels.get(position);
-                WallpaperChanger.changeWallpaper(getActivity(), model.getId());
-                if (mLoadingDialog == null) {
-                    mLoadingDialog = new ProgressDialog(getActivity());
-                    mLoadingDialog.setMessage(getString(R.string.changing));
-                    mLoadingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                    mLoadingDialog.setIndeterminate(true);
+                if (!LiveWallpaperService.isSet(getActivity())) {
+                    if (!mSnackBar.isShown()) mSnackBar.show();
+                } else {
+                    WallpaperModel model = mAdapter.mModels.get(position);
+                    WallpaperChanger.changeWallpaper(getActivity(), model.getId());
                 }
-                mLoadingDialog.show();
             } catch (IndexOutOfBoundsException e) {
                 e.printStackTrace();
             }
@@ -282,7 +296,6 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
     public void onWallpaperChanged(@NonNull WallpaperChanger.ChangeWallpaperEvent event) {
         Log.d("id:%d", event.id);
         mAdapter.notifyDataSetChanged();
-        mLoadingDialog.dismiss();
     }
 
     private static final class WallpaperListAdapter extends RecyclerView.Adapter {

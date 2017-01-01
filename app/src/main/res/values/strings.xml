@@ -30,8 +30,11 @@
     <string name="you_can_change_a_wallpaper_automatically_by_below_settings">You can change a wallpaper automatically by below settings.</string>
     <string name="synchronize_wallpapers_via_google_drive">Synchronize wallpapers via Google Drive.</string>
     <string name="backup_and_restore"><![CDATA[Backup & restore]]></string>
-    <string name="changing">Changing…</string>
     <string name="set_live_wallpaper">Set Live wallpaper</string>
     <string name="it_needs_to_set_live_wallpaper">It needs to set live wallpaper.</string>
     <string name="set">Set</string>
+    <string name="backgrounds_are_provided_through_live_wallpaper">Backgrounds are provided through live wallpaper.</string>
+    <string name="live_wallpaper">Live wallpaper</string>
+    <string name="completed">Completed</string>
+    <string name="live_wallpaper_needs_to_be_set">List wallpaper needs to be set. It will support to change wallpaper with live wallpaper.</string>
 </resources>

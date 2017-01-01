@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -27,7 +26,7 @@
             android:layout_marginBottom="8dp"
             android:gravity="center_horizontal|bottom"
             android:lines="2"
-            android:text="@string/change_automatically"
+            android:text="@string/live_wallpaper"
             android:textColor="@android:color/white"
             />
 
@@ -39,71 +38,31 @@
             android:alpha="0.8"
             android:gravity="center_horizontal"
             android:lines="2"
-            android:text="@string/you_can_change_a_wallpaper_automatically_by_below_settings"
+            android:text="@string/backgrounds_are_provided_through_live_wallpaper"
             android:textColor="@android:color/white"
             />
 
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <RelativeLayout
+        android:layout_width="320dp"
         android:layout_height="0dp"
         android:layout_weight="0.6"
-        android:orientation="vertical"
-        android:paddingEnd="40dp"
-        android:paddingStart="40dp"
-        android:paddingTop="10dp"
+        android:paddingTop="20dp"
         >
 
-        <RelativeLayout
-            android:id="@+id/auto_change_layout"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginBottom="4dp"
-            android:paddingEnd="16dp"
-            android:paddingStart="16dp"
-            >
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:text="@string/auto_change"
-                android:textColor="@android:color/white"
-                android:textSize="16sp"
-                />
-
-            <Switch
-                android:id="@+id/auto_change_switch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                />
-
-        </RelativeLayout>
-
-        <android.support.v7.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardBackgroundColor="@color/background"
-            app:cardElevation="2dp">
-
-            <include layout="@layout/preference_auto_change_period"/>
-
-        </android.support.v7.widget.CardView>
-
         <Button
+            android:id="@+id/set_live_wallpaper_button"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="150dp"
             android:background="@drawable/rounded_background"
             android:elevation="2dp"
             android:fontFamily="sans-serif-light"
             android:onClick="onClick"
-            android:text="@string/start"
+            android:text="@string/set_live_wallpaper"
             android:textColor="@android:color/white"
             android:textSize="14sp"
             />
-    </LinearLayout>
+    </RelativeLayout>
 </LinearLayout>

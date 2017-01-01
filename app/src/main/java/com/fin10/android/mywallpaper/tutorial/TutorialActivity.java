@@ -15,6 +15,7 @@ import android.view.View;
 
 import com.fin10.android.mywallpaper.MainActivity;
 import com.fin10.android.mywallpaper.R;
+import com.fin10.android.mywallpaper.live.LiveWallpaperService;
 import com.fin10.android.mywallpaper.settings.PreferenceModel;
 import com.ugurtekbas.fadingindicatorlibrary.FadingIndicator;
 
@@ -23,6 +24,7 @@ import java.util.List;
 
 public final class TutorialActivity extends AppCompatActivity implements ViewPager.OnPageChangeListener {
 
+    private final ArgbEvaluator mEvaluator = new ArgbEvaluator();
     private TutorialPageAdapter mAdapter;
     private ViewPager mViewPager;
 
@@ -47,16 +49,23 @@ public final class TutorialActivity extends AppCompatActivity implements ViewPag
     }
 
     public void onClick(View view) {
-        startActivity(new Intent(this, MainActivity.class));
-        PreferenceModel.setTutorialEnabled(this, false);
-        finish();
+        switch (view.getId()) {
+            case R.id.start_button:
+                startActivity(new Intent(this, MainActivity.class));
+                PreferenceModel.setTutorialEnabled(this, false);
+                finish();
+                break;
+            case R.id.set_live_wallpaper_button:
+                startActivity(LiveWallpaperService.getIntentForSetLiveWallpaper());
+                break;
+        }
     }
 
     @Override
     public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
         int from = mAdapter.getColor(position);
         int to = mAdapter.getColor(position + 1);
-        int color = (int) new ArgbEvaluator().evaluate(positionOffset, from, to);
+        int color = (int) mEvaluator.evaluate(positionOffset, from, to);
         mViewPager.getBackground().setTint(color);
     }
 
@@ -72,16 +81,17 @@ public final class TutorialActivity extends AppCompatActivity implements ViewPag
 
         private final List<Integer> mColors = new ArrayList<>();
 
-        public TutorialPageAdapter(FragmentManager fm) {
+        TutorialPageAdapter(FragmentManager fm) {
             super(fm);
             mColors.add(0xFF37AFBF);
             mColors.add(0xff208DB6);
             mColors.add(0xff8050FF);
+            mColors.add(0xff009688);
             mColors.add(0xff446EB6);
         }
 
         @ColorInt
-        public int getColor(int position) {
+        int getColor(int position) {
             if (mColors.size() > position) {
                 return mColors.get(position);
             }
@@ -91,7 +101,7 @@ public final class TutorialActivity extends AppCompatActivity implements ViewPag
 
         @Override
         public int getCount() {
-            return 4;
+            return mColors.size();
         }
 
         @Override
@@ -118,6 +128,9 @@ public final class TutorialActivity extends AppCompatActivity implements ViewPag
                     return fragment;
                 }
                 case 3: {
+                    return new LiveWallpaperTutorialFragment();
+                }
+                case 4: {
                     return new AutoChangeTutorialFragment();
                 }
                 default:

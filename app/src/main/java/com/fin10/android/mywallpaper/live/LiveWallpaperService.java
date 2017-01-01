@@ -1,5 +1,6 @@
 package com.fin10.android.mywallpaper.live;
 
+import android.app.WallpaperInfo;
 import android.app.WallpaperManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -35,10 +36,21 @@ public final class LiveWallpaperService extends WallpaperService {
 
     @NonNull
     public static Intent getIntentForSetLiveWallpaper() {
+        return getIntentForSetLiveWallpaper(0);
+    }
+
+    @NonNull
+    public static Intent getIntentForSetLiveWallpaper(int flags) {
         Intent intent = new Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER);
+        if (flags != 0) intent.setFlags(flags);
         intent.putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
                 new ComponentName(BuildConfig.APPLICATION_ID, LiveWallpaperService.class.getName()));
         return intent;
+    }
+
+    public static boolean isSet(@NonNull Context context) {
+        WallpaperInfo info = WallpaperManager.getInstance(context).getWallpaperInfo();
+        return info != null && BuildConfig.APPLICATION_ID.equals(info.getPackageName());
     }
 
     @Override
@@ -137,7 +149,7 @@ public final class LiveWallpaperService extends WallpaperService {
 
                     canvas.drawColor(0xFF555662);
                     canvas.translate(width >> 1, height >> 1);
-                    canvas.translate(-iconWidth >> 1, iconHeight >> 1);
+                    canvas.translate(-iconWidth >> 1, -iconHeight >> 1);
                     canvas.drawBitmap(bitmap, src, dst, null);
                 } finally {
                     holder.unlockCanvasAndPost(canvas);

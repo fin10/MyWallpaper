@@ -19,7 +19,7 @@ public class TutorialFragment extends Fragment {
 
     public static final class Argument {
 
-        public static final String LAYOUT_ID = "layout_id";
+        static final String LAYOUT_ID = "layout_id";
 
         private Argument() {
         }

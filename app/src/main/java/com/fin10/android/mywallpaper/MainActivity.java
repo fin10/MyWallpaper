@@ -1,8 +1,6 @@
 package com.fin10.android.mywallpaper;
 
 import android.Manifest;
-import android.app.WallpaperInfo;
-import android.app.WallpaperManager;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -17,7 +15,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.fin10.android.mywallpaper.live.LiveWallpaperService;
 import com.fin10.android.mywallpaper.model.WallpaperChanger;
 import com.fin10.android.mywallpaper.settings.PreferenceModel;
 import com.fin10.android.mywallpaper.settings.SettingsActivity;
@@ -27,11 +24,10 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-public final class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public final class MainActivity extends AppCompatActivity {
 
     private BroadcastReceiver mReceiver;
     private Snackbar mSnackBar;
-    private View mLiveWallpaperButton;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -61,22 +57,8 @@ public final class MainActivity extends AppCompatActivity implements View.OnClic
             }
         });
 
-        mLiveWallpaperButton = findViewById(R.id.live_wallpaper_button);
-        mLiveWallpaperButton.setOnClickListener(this);
-
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        WallpaperInfo info = WallpaperManager.getInstance(this).getWallpaperInfo();
-        if (info != null && BuildConfig.APPLICATION_ID.equals(info.getPackageName())) {
-            mLiveWallpaperButton.setVisibility(View.GONE);
-        } else {
-            mLiveWallpaperButton.setVisibility(View.VISIBLE);
         }
     }
 
@@ -103,15 +85,6 @@ public final class MainActivity extends AppCompatActivity implements View.OnClic
         super.onDestroy();
         EventBus.getDefault().unregister(this);
         if (mReceiver != null) unregisterReceiver(mReceiver);
-    }
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.live_wallpaper_button: {
-                startActivity(LiveWallpaperService.getIntentForSetLiveWallpaper());
-            }
-        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
