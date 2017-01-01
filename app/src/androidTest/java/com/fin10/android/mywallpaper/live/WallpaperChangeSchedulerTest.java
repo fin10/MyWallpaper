@@ -7,6 +7,8 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.fin10.android.mywallpaper.model.WallpaperChanger;
+import com.fin10.android.mywallpaper.model.WallpaperModel;
+import com.fin10.android.mywallpaper.model.WallpaperModelTest;
 
 import junit.framework.Assert;
 
@@ -23,17 +25,20 @@ public class WallpaperChangeSchedulerTest {
     private final BroadcastReceiver receiver = new WallpaperChanger.Receiver();
     private final Thread thread = Thread.currentThread();
     private final Context context = InstrumentationRegistry.getTargetContext();
+    private final WallpaperModel model = WallpaperModelTest.createTestModel();
 
     @Before
     public void setUp() throws Exception {
         context.registerReceiver(receiver, WallpaperChanger.Receiver.getIntentFilter());
         EventBus.getDefault().register(this);
+        model.insert();
     }
 
     @After
     public void tearDown() throws Exception {
         context.unregisterReceiver(receiver);
         EventBus.getDefault().unregister(this);
+        model.delete();
     }
 
     @Test
