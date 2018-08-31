@@ -6,7 +6,6 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.fin10.android.mywallpaper.FileUtils;
-import com.fin10.android.mywallpaper.Log;
 import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.NotNull;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
@@ -15,6 +14,8 @@ import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.raizlabs.android.dbflow.structure.BaseModel;
 
 import org.greenrobot.eventbus.EventBus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,6 +25,8 @@ import java.util.List;
 
 @Table(database = WallpaperDatabase.class)
 public final class WallpaperModel extends BaseModel {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(WallpaperModel.class);
 
     @Column(name = "_id", getterName = "getId")
     @PrimaryKey(autoincrement = true)
@@ -125,7 +128,7 @@ public final class WallpaperModel extends BaseModel {
         File file = new File(model.getImagePath());
         boolean result = file.delete();
         if (!result) {
-            Log.e("failed to delete. %s", model.getImagePath());
+            LOGGER.error("failed to delete. {}", model.getImagePath());
             return;
         }
 

@@ -22,3 +22,7 @@
 }
 
 -keep class * extends com.raizlabs.android.dbflow.config.DatabaseHolder { *; }
+
+-keep class ch.qos.** { *; }
+-keep class org.slf4j.** { *; }
+-keepattributes *Annotation*

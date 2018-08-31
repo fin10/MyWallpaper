@@ -5,6 +5,8 @@ import android.content.res.XmlResourceParser;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.BufferedInputStream;
@@ -18,6 +20,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public final class FileUtils {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileUtils.class);
 
     private static String sRootPath;
 
@@ -33,7 +37,7 @@ public final class FileUtils {
                 sRootPath = context.getFilesDir() + "/" + path;
                 File file = new File(sRootPath);
                 boolean result = file.exists() || file.mkdirs();
-                if (!result) Log.e("failed to make root folder, %s", sRootPath);
+                if (!result) LOGGER.error("failed to make root folder, {}", sRootPath);
             } catch (XmlPullParserException | IOException e) {
                 e.printStackTrace();
             }
@@ -50,7 +54,7 @@ public final class FileUtils {
                 copy(inputStream, new FileOutputStream(file));
                 return file.getAbsolutePath();
             } else {
-                Log.e("[%s] already exist.", name);
+                LOGGER.error("{} already exists.", name);
             }
         } catch (IOException e) {
             e.printStackTrace();

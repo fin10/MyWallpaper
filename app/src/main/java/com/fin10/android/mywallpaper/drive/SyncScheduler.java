@@ -17,7 +17,6 @@ import android.support.v4.util.Pair;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 
-import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -25,11 +24,15 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public final class SyncScheduler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SyncScheduler.class);
 
     private static final String INTENT_ACTION_SYNC = "sync";
     private static final String INTENT_ACTION_UPLOAD = "upload";
@@ -66,7 +69,6 @@ public final class SyncScheduler {
     }
 
     public static void start(@NonNull Context context) {
-        Log.d("enter");
         JobInfo jobInfo = new JobInfo.Builder(JOB_ID, new ComponentName(context, ScheduleService.class))
                 .setPersisted(true)
                 .setPeriodic(DateUtils.DAY_IN_MILLIS)
@@ -79,7 +81,6 @@ public final class SyncScheduler {
     }
 
     public static void stop(@NonNull Context context) {
-        Log.d("enter");
         JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
         jobScheduler.cancel(JOB_ID);
     }
@@ -91,7 +92,6 @@ public final class SyncScheduler {
 
         @Override
         public void onCreate() {
-            Log.d("enter");
             super.onCreate();
             mGoogleApiClient = DriveApiHelper.createGoogleApiClient(this);
             mGoogleApiClient.registerConnectionCallbacks(this);
@@ -113,7 +113,6 @@ public final class SyncScheduler {
 
         @Override
         public void onDestroy() {
-            Log.d("enter");
             super.onDestroy();
             mGoogleApiClient.disconnect();
             mGoogleApiClient.unregisterConnectionCallbacks(this);
@@ -122,7 +121,6 @@ public final class SyncScheduler {
 
         @Override
         public void onConnected(@Nullable Bundle bundle) {
-            Log.d("enter");
             final String action = mIntent.getAction();
             new AsyncTask<Void, Void, Boolean>() {
 
@@ -148,7 +146,7 @@ public final class SyncScheduler {
 
                         for (WallpaperModel model : removeItems) {
                             WallpaperModel.removeModel(model);
-                            Log.d("%s is removed.", model.getCreationTime());
+                            LOGGER.debug("{} is removed.", model.getCreationTime());
                         }
 
                         models = WallpaperModel.getModels(WallpaperModel.UserId.DEVICE);
@@ -166,7 +164,7 @@ public final class SyncScheduler {
                         }
                     } else if (INTENT_ACTION_UPLOAD.equals(action)) {
                         long modelId = mIntent.getLongExtra(EXTRA_MODEL_ID, -1);
-                        Log.d("modelId:%d", modelId);
+                        LOGGER.debug("modelId:{}", modelId);
                         WallpaperModel model = WallpaperModel.getModel(WallpaperModel.UserId.DEVICE, modelId);
                         if (model != null) {
                             String id = DriveApiHelper.upload(mGoogleApiClient, model);
@@ -174,7 +172,7 @@ public final class SyncScheduler {
                         }
                     } else if (INTENT_ACTION_DISMISS.equals(action)) {
                         List<String> removed = mIntent.getStringArrayListExtra(EXTRA_MODEL_ID_LIST);
-                        Log.d("removed:%d", removed.size());
+                        LOGGER.debug("removed:{}", removed.size());
                         return DriveApiHelper.dismiss(mGoogleApiClient, removed);
                     }
 
@@ -191,12 +189,12 @@ public final class SyncScheduler {
 
         @Override
         public void onConnectionSuspended(int cause) {
-            Log.e("cause:%d", cause);
+            LOGGER.error("cause:{}", cause);
         }
 
         @Override
         public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-            Log.e("%s", connectionResult.toString());
+            LOGGER.error(connectionResult.toString());
             EventBus.getDefault().post(new SyncEvent(false));
             stopSelf();
         }
@@ -208,7 +206,7 @@ public final class SyncScheduler {
 
         @Override
         public boolean onStartJob(JobParameters jobParameters) {
-            Log.d("id:%d", jobParameters.getJobId());
+            LOGGER.debug("id:{}", jobParameters.getJobId());
             EventBus.getDefault().register(this);
             mJobParams = jobParameters;
             sync(this);
@@ -217,7 +215,7 @@ public final class SyncScheduler {
 
         @Override
         public boolean onStopJob(JobParameters jobParameters) {
-            Log.d("id:%d", jobParameters.getJobId());
+            LOGGER.debug("id:{}", jobParameters.getJobId());
             EventBus.getDefault().unregister(this);
             mJobParams = null;
             return true;

@@ -12,14 +12,18 @@ import android.support.v4.app.ActivityCompat;
 import android.text.TextUtils;
 import android.view.View;
 
-import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.drive.LoginActivity;
 import com.fin10.android.mywallpaper.drive.SyncScheduler;
 import com.fin10.android.mywallpaper.live.LiveWallpaperService;
 import com.fin10.android.mywallpaper.live.WallpaperChangeScheduler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public final class SettingsFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SettingsFragment.class);
 
     private static final int REQUEST_CODE_LOGIN = 1;
     private static final int REQUEST_CODE_LOGOUT = 2;
@@ -63,7 +67,7 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.d("requestCode:%d, resultCode:%d", requestCode, resultCode);
+        LOGGER.debug("requestCode:{}, resultCode:{}", requestCode, resultCode);
         switch (requestCode) {
             case REQUEST_CODE_LOGIN: {
                 if (resultCode == Activity.RESULT_OK) {
@@ -88,7 +92,7 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
     @Override
     public boolean onPreferenceChange(Preference preference, Object newValue) {
         String key = preference.getKey();
-        Log.d("%s, newValue:%s", key, newValue);
+        LOGGER.debug("{}, newValue:{}", key, newValue);
         if (TextUtils.equals(key, getString(R.string.pref_key_auto_change_enabled))) {
             boolean value = (boolean) newValue;
             if (value) {

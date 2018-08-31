@@ -7,21 +7,24 @@ import android.content.IntentFilter;
 import android.support.annotation.NonNull;
 
 import com.fin10.android.mywallpaper.BuildConfig;
-import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.settings.PreferenceModel;
 
 import org.greenrobot.eventbus.EventBus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class WallpaperChanger {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(WallpaperChanger.class);
 
     public static boolean changeWallpaper(@NonNull final Context context, long id) {
         final WallpaperModel model = WallpaperModel.getModel(id);
         if (model == null) {
-            Log.e("[%d] Not found.", id);
+            LOGGER.error("{} not founds.", id);
             return false;
         }
 
-        Log.d("id:%d", id);
+        LOGGER.debug("id:{}", id);
         model.incrementAppliedCount();
         PreferenceModel.setCurrentWallpaper(context, model.getId());
 
@@ -44,7 +47,7 @@ public final class WallpaperChanger {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d("action:%s, id:%d", intent.getAction(), intent.getLongExtra(EXTRA_ID, -1));
+            LOGGER.debug("action:{}, id:{}", intent.getAction(), intent.getLongExtra(EXTRA_ID, -1));
             if (ACTION_WALLPAPER_CHANGED.equals(intent.getAction())) {
                 EventBus.getDefault().post(new WallpaperChanger.ChangeWallpaperEvent(intent.getLongExtra(EXTRA_ID, -1)));
             }

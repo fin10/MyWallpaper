@@ -37,12 +37,16 @@ import com.fin10.android.mywallpaper.widget.GridSpacingItemDecoration;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public final class WallpaperListFragment extends Fragment implements OnItemEventListener, View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(WallpaperListFragment.class);
 
     private View mEmptyView;
     private SwipeRefreshLayout mRefreshLayout;
@@ -231,7 +235,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
     @Override
     public void onItemClick(@NonNull View itemView, int position) {
-        Log.d("position:%d", position);
+        LOGGER.debug("position:{}", position);
         if (mAdapter.isSelectionMode()) {
             mAdapter.setSelected(position);
             if (mActionMode != null) {
@@ -253,7 +257,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
     @Override
     public boolean onItemLongClick(@NonNull View itemView, int position) {
-        Log.d("position:%d", position);
+        LOGGER.debug("position:{}", position);
         if (!mAdapter.isSelectionMode()) {
             mAdapter.setSelectionMode(true);
             mRefreshLayout.setEnabled(false);
@@ -280,7 +284,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onSyncEvent(@NonNull SyncScheduler.SyncEvent event) {
-        Log.d("%b", event.success);
+        LOGGER.debug("{}", event.success);
         mRefreshLayout.setRefreshing(false);
 
         mAdapter.notifyDataSetChanged();
@@ -294,7 +298,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onWallpaperChanged(@NonNull WallpaperChanger.ChangeWallpaperEvent event) {
-        Log.d("id:%d", event.id);
+        LOGGER.debug("id:{}", event.id);
         mAdapter.notifyDataSetChanged();
     }
 
@@ -353,7 +357,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                 }
             }
 
-            Log.e("[%d] Not found.", event.model.getId());
+            LOGGER.error("{} not founds.", event.model.getId());
         }
 
         @Subscribe(threadMode = ThreadMode.MAIN)

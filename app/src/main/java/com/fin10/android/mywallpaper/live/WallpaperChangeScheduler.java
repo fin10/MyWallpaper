@@ -7,14 +7,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 
-import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.model.WallpaperChanger;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public final class WallpaperChangeScheduler extends BroadcastReceiver {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(WallpaperChangeScheduler.class);
+
     public static void start(@NonNull Context context, long interval) {
-        Log.d("interval:%d", interval);
+        LOGGER.debug("interval:{}", interval);
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + interval, interval, createOperation(context));
     }
@@ -33,7 +37,7 @@ public final class WallpaperChangeScheduler extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (!LiveWallpaperService.isSet(context)) {
-            Log.d("Live wallpaper has not been set.");
+            LOGGER.debug("Live wallpaper has not been set.");
             stop(context);
             return;
         }
@@ -42,7 +46,7 @@ public final class WallpaperChangeScheduler extends BroadcastReceiver {
         if (model != null) {
             WallpaperChanger.changeWallpaper(context, model.getId());
         } else {
-            Log.e("There is no wallpapers.");
+            LOGGER.error("There is no wallpapers.");
         }
     }
 }

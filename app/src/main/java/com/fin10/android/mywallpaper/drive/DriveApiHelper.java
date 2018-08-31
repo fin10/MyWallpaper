@@ -8,7 +8,6 @@ import android.support.annotation.WorkerThread;
 import android.support.v4.util.Pair;
 
 import com.fin10.android.mywallpaper.FileUtils;
-import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
@@ -26,12 +25,17 @@ import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 final class DriveApiHelper {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DriveApiHelper.class);
 
     private static final String TARGET_FOLDER_NAME = "My Wallpaper";
 
@@ -60,12 +64,12 @@ final class DriveApiHelper {
                 .await();
         try {
             if (!result.getStatus().isSuccess()) {
-                Log.e(result.getStatus().toString());
+                LOGGER.error(result.getStatus().toString());
                 return null;
             }
 
             if (result.getMetadataBuffer().getCount() != 0) {
-                Log.e("[%d] already exist.", model.getCreationTime());
+                LOGGER.error("{} already exists.", model.getCreationTime());
                 return null;
             }
         } finally {
@@ -74,7 +78,7 @@ final class DriveApiHelper {
 
         DriveApi.DriveContentsResult contentsResult = Drive.DriveApi.newDriveContents(googleApiClient).await();
         if (!contentsResult.getStatus().isSuccess()) {
-            Log.e(contentsResult.getStatus().toString());
+            LOGGER.error(contentsResult.getStatus().toString());
             return null;
         }
 
@@ -90,12 +94,12 @@ final class DriveApiHelper {
 
         DriveFolder.DriveFileResult fileResult = folder.createFile(googleApiClient, changeSet, contents).await();
         if (!fileResult.getStatus().isSuccess()) {
-            Log.e(fileResult.getStatus().toString());
+            LOGGER.error(fileResult.getStatus().toString());
             return null;
         }
 
         String id = fileResult.getDriveFile().getDriveId().toInvariantString();
-        Log.d("id:%s", id);
+        LOGGER.debug("id:{}", id);
         return id;
     }
 
@@ -111,7 +115,7 @@ final class DriveApiHelper {
 
         try {
             if (!result.getStatus().isSuccess()) {
-                Log.e(result.getStatus().toString());
+                LOGGER.error(result.getStatus().toString());
                 return null;
             }
 
@@ -135,7 +139,7 @@ final class DriveApiHelper {
                 .build();
         DriveFolder.DriveFolderResult result = parent.createFolder(googleApiClient, changeSet).await();
         if (!result.getStatus().isSuccess()) {
-            Log.e(result.getStatus().toString());
+            LOGGER.error(result.getStatus().toString());
             return null;
         }
 
@@ -160,7 +164,7 @@ final class DriveApiHelper {
                         .build())
                 .await();
         if (!children.getStatus().isSuccess()) {
-            Log.e(children.getStatus().toString());
+            LOGGER.error(children.getStatus().toString());
             return Collections.emptyList();
         }
 
@@ -172,7 +176,7 @@ final class DriveApiHelper {
                 datas.add(Pair.create(driveId.toInvariantString(), driveId.encodeToString()));
             }
 
-            Log.d("count:%d", datas.size());
+            LOGGER.debug("count:{}", datas.size());
             return datas;
         } finally {
             buffer.release();
@@ -182,12 +186,12 @@ final class DriveApiHelper {
     @WorkerThread
     @NonNull
     static String download(@NonNull GoogleApiClient googleApiClient, @NonNull String id) {
-        Log.d("%s", id);
+        LOGGER.debug(id);
         DriveId driveId = DriveId.decodeFromString(id);
         DriveFile driveFile = driveId.asDriveFile();
         DriveApi.DriveContentsResult contentsResult = driveFile.open(googleApiClient, DriveFile.MODE_READ_ONLY, null).await();
         if (!contentsResult.getStatus().isSuccess()) {
-            Log.e(contentsResult.getStatus().toString());
+            LOGGER.error(contentsResult.getStatus().toString());
             return "";
         }
 
@@ -198,10 +202,10 @@ final class DriveApiHelper {
     static boolean sync(@NonNull GoogleApiClient googleApiClient) {
         Status status = Drive.DriveApi.requestSync(googleApiClient).await();
         if (status.getStatusCode() == DriveStatusCodes.DRIVE_RATE_LIMIT_EXCEEDED) {
-            Log.e(status.toString());
+            LOGGER.error(status.toString());
             return false;
         } else {
-            Log.d(status.toString());
+            LOGGER.debug(status.toString());
             return true;
         }
     }
@@ -217,7 +221,7 @@ final class DriveApiHelper {
                         .build())
                 .await();
         if (!children.getStatus().isSuccess()) {
-            Log.e(children.getStatus().toString());
+            LOGGER.error(children.getStatus().toString());
             return false;
         }
 
@@ -227,7 +231,7 @@ final class DriveApiHelper {
                 DriveId driveId = data.getDriveId();
                 if (ids.contains(driveId.toInvariantString())) {
                     Status result = driveId.asDriveFile().trash(googleApiClient).await();
-                    Log.d(result.toString());
+                    LOGGER.debug(result.toString());
                 }
             }
 

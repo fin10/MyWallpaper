@@ -20,8 +20,8 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.fin10.android.mywallpaper.BuildConfig;
-import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.R;
+import com.fin10.android.mywallpaper.drive.SyncScheduler;
 import com.fin10.android.mywallpaper.model.WallpaperChanger;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
 import com.fin10.android.mywallpaper.settings.PreferenceModel;
@@ -29,8 +29,12 @@ import com.fin10.android.mywallpaper.settings.PreferenceModel;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class LiveWallpaperService extends WallpaperService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SyncScheduler.class);
 
     private final BroadcastReceiver mReceiver = new WallpaperChanger.Receiver();
 
@@ -55,7 +59,6 @@ public final class LiveWallpaperService extends WallpaperService {
 
     @Override
     public void onCreate() {
-        Log.d("enter");
         super.onCreate();
         registerReceiver(mReceiver, WallpaperChanger.Receiver.getIntentFilter());
 
@@ -66,7 +69,6 @@ public final class LiveWallpaperService extends WallpaperService {
 
     @Override
     public void onDestroy() {
-        Log.d("enter");
         super.onDestroy();
         unregisterReceiver(mReceiver);
         WallpaperChangeScheduler.stop(this);
@@ -94,24 +96,22 @@ public final class LiveWallpaperService extends WallpaperService {
         @Override
         public void onSurfaceChanged(final SurfaceHolder holder, int format, int width, int height) {
             super.onSurfaceChanged(holder, format, width, height);
-            Log.d("enter");
             long id = PreferenceModel.getCurrentWallpaper(getBaseContext());
             updateWallpaper(getBaseContext(), holder, width, height, id);
         }
 
         @Subscribe(threadMode = ThreadMode.MAIN)
         public void onWallpaperChanged(@NonNull WallpaperChanger.ChangeWallpaperEvent event) {
-            Log.d("enter");
             SurfaceHolder holder = getSurfaceHolder();
             Rect frame = holder.getSurfaceFrame();
             updateWallpaper(getBaseContext(), holder, frame.width(), frame.height(), event.id);
         }
 
         private void updateWallpaper(@NonNull Context context, final SurfaceHolder holder, int width, final int height, long id) {
-            Log.d("[%d:%d] %d", width, height, id);
+            LOGGER.debug("[{}:{}] {}", width, height, id);
             WallpaperModel model = WallpaperModel.getModel(id);
             if (model == null) {
-                Log.e("[%d] Not found.", id);
+                LOGGER.error("{} not founds.", id);
                 drawEmptyScreen(holder, width, height);
                 return;
             }
@@ -126,7 +126,7 @@ public final class LiveWallpaperService extends WallpaperService {
                         public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
                             Canvas canvas = holder.lockCanvas();
                             if (canvas == null) {
-                                Log.e("canvas is null.");
+                                LOGGER.error("canvas is null.");
                             } else {
                                 canvas.drawBitmap(resource, 0, 0, new Paint(Paint.ANTI_ALIAS_FLAG));
                                 holder.unlockCanvasAndPost(canvas);
@@ -138,7 +138,7 @@ public final class LiveWallpaperService extends WallpaperService {
         private void drawEmptyScreen(@NonNull SurfaceHolder holder, int width, int height) {
             Canvas canvas = holder.lockCanvas();
             if (canvas == null) {
-                Log.e("canvas is null.");
+                LOGGER.error("canvas is null.");
             } else {
                 try {
                     Resources res = getResources();

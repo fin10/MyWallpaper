@@ -9,7 +9,7 @@ import android.support.annotation.NonNull;
 import android.support.v13.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
-import com.fin10.android.mywallpaper.Log;
+
 import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.live.LiveWallpaperService;
 import com.fin10.android.mywallpaper.settings.PreferenceModel;
@@ -22,11 +22,16 @@ import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.raizlabs.android.dbflow.sql.migration.BaseMigration;
 import com.raizlabs.android.dbflow.structure.database.DatabaseWrapper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Map;
 import java.util.Set;
 
 @Database(name = WallpaperDatabase.NAME, version = WallpaperDatabase.VERSION)
 public final class WallpaperDatabase {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(WallpaperDatabase.class);
 
     static final String NAME = "WallpaperDatabase";
     static final int VERSION = 2;
@@ -40,7 +45,7 @@ public final class WallpaperDatabase {
 
         @Override
         public void migrate(DatabaseWrapper database) {
-            Log.d("DB Version: %d", database.getVersion());
+            LOGGER.debug("DB Version: {}", database.getVersion());
             Context context = FlowManager.getContext();
             Map<String, ?> prefs = PreferenceManager.getDefaultSharedPreferences(context).getAll();
             Set<String> keySet = prefs.keySet();
@@ -53,7 +58,7 @@ public final class WallpaperDatabase {
                         .columnValues(values)
                         .execute(database);
             }
-            Log.d("%d migration completed.", prefs.size());
+            LOGGER.debug("{} migration completed.", prefs.size());
 
             if (!LiveWallpaperService.isSet(context)) {
                 PendingIntent pendingIntent = PendingIntent.getActivity(context, 0,

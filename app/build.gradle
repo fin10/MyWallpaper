@@ -48,4 +48,7 @@ dependencies {
 
     implementation "com.google.android.gms:play-services-auth:${play_version}"
     implementation "com.google.android.gms:play-services-drive:${play_version}"
+
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+    implementation 'com.github.tony19:logback-android:1.1.1-12'
 }

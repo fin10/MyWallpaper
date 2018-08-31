@@ -10,13 +10,17 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
-import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public final class LoginActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(LoginActivity.class);
 
     private static final String INTENT_ACTION_LOGIN = "login";
     private static final String INTENT_ACTION_LOGOUT = "logout";
@@ -64,7 +68,7 @@ public final class LoginActivity extends AppCompatActivity implements GoogleApiC
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.d("requestCode:%d, resultCode:%d", requestCode, resultCode);
+        LOGGER.debug("requestCode:{}, resultCode:{}", requestCode, resultCode);
         switch (requestCode) {
             case REQUEST_CODE_CONNECT: {
                 if (resultCode == Activity.RESULT_OK) {
@@ -100,12 +104,12 @@ public final class LoginActivity extends AppCompatActivity implements GoogleApiC
 
     @Override
     public void onConnectionSuspended(int cause) {
-        Log.e("cause:%d", cause);
+        LOGGER.error("cause:{}", cause);
     }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.d("%s", connectionResult.toString());
+        LOGGER.debug(connectionResult.toString());
         String action = getIntent().getAction();
         if (INTENT_ACTION_LOGIN.equals(action)) {
             if (connectionResult.hasResolution() && connectionResult.getErrorCode() == ConnectionResult.SIGN_IN_REQUIRED) {

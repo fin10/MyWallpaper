@@ -23,12 +23,14 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.fin10.android.mywallpaper.BuildConfig;
-import com.fin10.android.mywallpaper.Log;
 import com.fin10.android.mywallpaper.MainActivity;
 import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.Utils;
 import com.fin10.android.mywallpaper.drive.SyncScheduler;
 import com.fin10.android.mywallpaper.settings.PreferenceModel;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -36,6 +38,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
 public final class WallpaperDownloadActivity extends AppCompatActivity {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(WallpaperDownloadActivity.class);
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -171,28 +175,28 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
             String action = intent.getAction();
             final int id = intent.getIntExtra(EXTRA_ID, -1);
             if (id == -1) {
-                Log.e("There is no id.");
+                LOGGER.error("There is no id.");
                 stopSelf();
                 return Service.START_NOT_STICKY;
             }
 
             if (ACTION_CANCEL_NOTIFICATION.equals(action)) {
-                Log.d("cancel %d notification", id);
+                LOGGER.debug("cancel {} notification", id);
                 NotificationManagerCompat.from(this).cancel(id);
                 AsyncTask task = mTaskMap.get(id);
                 if (task != null) {
                     mTaskMap.delete(id);
                     task.cancel(true);
                 } else {
-                    Log.e("%d task does not exist.", id);
+                    LOGGER.error("{} task does not exists.", id);
                 }
                 stopSelf();
 
             } else if (ACTION_DOWNLOAD_WALLPAPER.equals(action)) {
                 final Uri uri = intent.getParcelableExtra(EXTRA_URI);
-                Log.d("uri:%s", uri);
+                LOGGER.debug("uri:{}", uri);
                 if (uri == null) {
-                    Log.e("the intent has no uri.");
+                    LOGGER.error("the intent has no uri.");
                     stopSelf();
                     return Service.START_NOT_STICKY;
                 }

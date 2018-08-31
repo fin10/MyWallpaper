@@ -23,8 +23,12 @@ import com.fin10.android.mywallpaper.tutorial.TutorialActivity;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class MainActivity extends AppCompatActivity {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MainActivity.class);
 
     private BroadcastReceiver mReceiver;
     private Snackbar mSnackBar;
@@ -89,7 +93,7 @@ public final class MainActivity extends AppCompatActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onWallpaperChanged(@NonNull WallpaperChanger.ChangeWallpaperEvent event) {
-        Log.d("id:%d", event.id);
+        LOGGER.debug("id:{}", event.id);
         if (!mSnackBar.isShown()) {
             mSnackBar.show();
         }
