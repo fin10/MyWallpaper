@@ -1,16 +1,16 @@
 package com.fin10.android.mywallpaper.tutorial;
 
 import android.animation.ArgbEvaluator;
-import android.app.Fragment;
-import android.app.FragmentManager;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.ColorInt;
 import android.support.annotation.Nullable;
-import android.support.v13.app.FragmentPagerAdapter;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
 import com.fin10.android.mywallpaper.MainActivity;
@@ -22,7 +22,7 @@ import com.ugurtekbas.fadingindicatorlibrary.FadingIndicator;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class TutorialActivity extends AppCompatActivity implements ViewPager.OnPageChangeListener {
+public final class TutorialActivity extends FragmentActivity implements ViewPager.OnPageChangeListener {
 
     private final ArgbEvaluator mEvaluator = new ArgbEvaluator();
     private TutorialPageAdapter mAdapter;
@@ -32,13 +32,13 @@ public final class TutorialActivity extends AppCompatActivity implements ViewPag
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tutorial);
-        mAdapter = new TutorialPageAdapter(getFragmentManager());
+        mAdapter = new TutorialPageAdapter(getSupportFragmentManager());
 
-        mViewPager = (ViewPager) findViewById(R.id.view_pager);
+        mViewPager = findViewById(R.id.view_pager);
         mViewPager.setAdapter(mAdapter);
         mViewPager.addOnPageChangeListener(this);
 
-        FadingIndicator indicator = (FadingIndicator) findViewById(R.id.indicator);
+        FadingIndicator indicator = findViewById(R.id.indicator);
         indicator.setViewPager(mViewPager);
     }
 

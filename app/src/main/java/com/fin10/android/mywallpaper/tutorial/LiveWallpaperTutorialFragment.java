@@ -1,9 +1,10 @@
 package com.fin10.android.mywallpaper.tutorial;
 
+import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v13.app.ActivityCompat;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,11 +17,10 @@ public final class LiveWallpaperTutorialFragment extends TutorialFragment {
 
     private Button mSetLiveWallpaperButton;
 
-    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.tutorial_live_wallpaper_layout, container, false);
-        mSetLiveWallpaperButton = (Button) root.findViewById(R.id.set_live_wallpaper_button);
+        mSetLiveWallpaperButton = root.findViewById(R.id.set_live_wallpaper_button);
 
         return root;
     }
@@ -28,7 +28,10 @@ public final class LiveWallpaperTutorialFragment extends TutorialFragment {
     @Override
     public void onResume() {
         super.onResume();
-        if (LiveWallpaperService.isSet(getActivity())) {
+        Activity activity = getActivity();
+        if (activity == null) return;
+
+        if (LiveWallpaperService.isSet(activity)) {
             mSetLiveWallpaperButton.setText(R.string.completed);
             mSetLiveWallpaperButton.setTextColor(ActivityCompat.getColor(getActivity(), R.color.primary_text));
             mSetLiveWallpaperButton.setEnabled(false);
