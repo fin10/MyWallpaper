@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.fin10.android.mywallpaper"
-        minSdkVersion 21
+        minSdkVersion 24
         targetSdkVersion 27
         versionCode 5
         versionName "1.2.0"
@@ -27,7 +27,7 @@ android {
     }
 }
 
-def dbflow_version = "3.1.1"
+def dbflow_version = "4.2.3"
 def support_version = "27.1.1"
 def play_version = "10.0.1"
 
@@ -52,11 +52,12 @@ dependencies {
     annotationProcessor "com.github.Raizlabs.DBFlow:dbflow-processor:${dbflow_version}"
     implementation "com.github.Raizlabs.DBFlow:dbflow-core:${dbflow_version}"
     implementation "com.github.Raizlabs.DBFlow:dbflow:${dbflow_version}"
-    implementation "com.github.Raizlabs.DBFlow:dbflow-kotlinextensions:${dbflow_version}"
 
     implementation "com.google.android.gms:play-services-auth:${play_version}"
     implementation "com.google.android.gms:play-services-drive:${play_version}"
 
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
     implementation 'com.github.tony19:logback-android:1.1.1-12'
+
+    implementation group: 'commons-io', name: 'commons-io', version: '2.6'
 }

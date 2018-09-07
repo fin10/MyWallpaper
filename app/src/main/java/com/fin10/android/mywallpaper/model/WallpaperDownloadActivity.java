@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
@@ -216,7 +217,7 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
                                     .downloadOnly(size.first, size.second)
                                     .get();
 
-                            WallpaperModel result = WallpaperModel.addModel(getBaseContext(), uri.toString(), file);
+                            WallpaperModel result = WallpaperModel.addModel(getBaseContext(), file);
                             if (result != null && PreferenceModel.isSyncEnabled(getBaseContext())) {
                                 SyncScheduler.upload(getBaseContext(), result);
                             }
@@ -228,8 +229,8 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
                                     .into(context.getResources().getDimensionPixelSize(android.R.dimen.thumbnail_width),
                                             context.getResources().getDimensionPixelSize(android.R.dimen.thumbnail_height))
                                     .get();
-                        } catch (InterruptedException | ExecutionException e) {
-                            e.printStackTrace();
+                        } catch (InterruptedException | ExecutionException | IOException e) {
+                            LOGGER.error(e.getLocalizedMessage(), e);
                         }
 
                         return null;

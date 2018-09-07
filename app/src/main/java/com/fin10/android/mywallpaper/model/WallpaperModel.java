@@ -3,9 +3,7 @@ package com.fin10.android.mywallpaper.model;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 
-import com.fin10.android.mywallpaper.FileUtils;
 import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.NotNull;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
@@ -13,13 +11,13 @@ import com.raizlabs.android.dbflow.annotation.Table;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.raizlabs.android.dbflow.structure.BaseModel;
 
+import org.apache.commons.io.FileUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -28,41 +26,22 @@ public final class WallpaperModel extends BaseModel {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WallpaperModel.class);
 
-    @Column(name = "_id", getterName = "getId")
-    @PrimaryKey(autoincrement = true)
-    long mId;
+    @Column(name = "_id")
+    @PrimaryKey
+    private long id;
 
-    @Column(name = "user_id", defaultValue = "\"" + UserId.DEVICE + "\"")
-    String mUserId;
-
-    @Column(name = "source", getterName = "getSource")
-    String mSource;
-
-    @Column(name = "image_path", getterName = "getImagePath")
+    @Column(name = "image_path")
     @NotNull
-    String mImagePath;
+    private String imagePath;
 
-    @Column(name = "creation_time", getterName = "getCreationTime")
-    @NotNull
-    long mCreationTime;
-
-    @Column(name = "applied_count", defaultValue = "0")
-    long mAppliedCount;
+    @Column(name = "synced", defaultValue = "false")
+    private boolean synced;
 
     @NonNull
     public static List<WallpaperModel> getModels() {
         return SQLite.select()
                 .from(WallpaperModel.class)
-                .orderBy(WallpaperModel_Table.creation_time, false)
-                .queryList();
-    }
-
-    @NonNull
-    public static List<WallpaperModel> getModels(@NonNull String userId) {
-        return SQLite.select()
-                .from(WallpaperModel.class)
-                .where(WallpaperModel_Table.user_id.eq(userId))
-                .orderBy(WallpaperModel_Table.creation_time, false)
+                .orderBy(WallpaperModel_Table._id, false)
                 .queryList();
     }
 
@@ -74,54 +53,25 @@ public final class WallpaperModel extends BaseModel {
                 .querySingle();
     }
 
-    @Nullable
-    public static WallpaperModel getModel(@NonNull String userId, long id) {
-        return SQLite.select()
-                .from(WallpaperModel.class)
-                .where(WallpaperModel_Table.user_id.eq(userId))
-                .and(WallpaperModel_Table._id.eq(id))
-                .querySingle();
-    }
-
-    @Nullable
-    public static WallpaperModel getModel(@NonNull String source) {
-        return SQLite.select()
-                .from(WallpaperModel.class)
-                .where(WallpaperModel_Table.source.eq(source))
-                .querySingle();
+    @NonNull
+    public static WallpaperModel addModel(@NonNull Context context, @NonNull File source) throws IOException {
+        return addModel(context, System.currentTimeMillis(), source, false);
     }
 
     @NonNull
-    public static WallpaperModel addModel(@NonNull String userId, @NonNull String source, @NonNull String path) {
+    public static WallpaperModel addModel(@NonNull Context context, long id, @NonNull File source, boolean synced) throws IOException {
         WallpaperModel model = new WallpaperModel();
-        model.mCreationTime = System.currentTimeMillis();
-        model.mUserId = userId;
-        model.mSource = source;
-        model.mImagePath = path;
-        model.insert();
+        model.setId(id);
+        model.setSynced(synced);
 
+        File dest = new File(context.getDataDir().getAbsoluteFile() + "/" + model.getImagePath() + ".png");
+        FileUtils.copyFile(source, dest);
+        model.setImagePath(dest.getAbsolutePath());
+
+        model.insert();
         EventBus.getDefault().post(new AddEvent(model));
 
         return model;
-    }
-
-    @Nullable
-    static WallpaperModel addModel(@NonNull Context context, @NonNull String source, @NonNull File file) {
-        try {
-            WallpaperModel model = new WallpaperModel();
-            model.mCreationTime = System.currentTimeMillis();
-            model.mSource = source;
-            model.mImagePath = FileUtils.write(context, new FileInputStream(file), model.mCreationTime + ".png");
-            if (!TextUtils.isEmpty(model.mImagePath)) {
-                model.insert();
-                EventBus.getDefault().post(new AddEvent(model));
-                return model;
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        return null;
     }
 
     public static void removeModel(@NonNull WallpaperModel model) {
@@ -147,32 +97,35 @@ public final class WallpaperModel extends BaseModel {
     }
 
     public long getId() {
-        return mId;
+        return id;
     }
 
-    public long getCreationTime() {
-        return mCreationTime;
+    public void setId(long id) {
+        this.id = id;
     }
 
     @NonNull
     public String getImagePath() {
-        return mImagePath;
+        return imagePath;
     }
 
-    public long getAppliedCount() {
-        return mAppliedCount;
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
 
-    public void update(@NonNull String userId, @NonNull String source) {
-        mUserId = userId;
-        mSource = source;
-        update();
+    public boolean isSynced() {
+        return synced;
+    }
+
+    public void setSynced(boolean synced) {
+        this.synced = synced;
     }
 
     @Override
-    public void update() {
-        super.update();
-        EventBus.getDefault().post(new UpdateEvent(this));
+    public boolean update() {
+        boolean result = super.update();
+        if (result) EventBus.getDefault().post(new UpdateEvent(this));
+        return result;
     }
 
     @Override
@@ -182,31 +135,12 @@ public final class WallpaperModel extends BaseModel {
 
         WallpaperModel model = (WallpaperModel) o;
 
-        return mId == model.mId;
-
+        return getId() == model.getId();
     }
 
     @Override
     public int hashCode() {
-        return (int) (mId ^ (mId >>> 32));
-    }
-
-    @NonNull
-    public String getSource() {
-        return mSource != null ? mSource : "";
-    }
-
-    void incrementAppliedCount() {
-        ++mAppliedCount;
-        update();
-    }
-
-    public static final class UserId {
-
-        public static final String DEVICE = "device";
-
-        private UserId() {
-        }
+        return (int) (getId() ^ (getId() >>> 32));
     }
 
     public static final class AddEvent {

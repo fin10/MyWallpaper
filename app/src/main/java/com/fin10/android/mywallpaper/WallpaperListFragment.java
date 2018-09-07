@@ -3,7 +3,6 @@ package com.fin10.android.mywallpaper;
 import android.app.Dialog;
 import android.app.Fragment;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -24,7 +23,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.fin10.android.mywallpaper.drive.SyncScheduler;
@@ -83,12 +81,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                     shareIntent.setType("image/*");
                     startActivity(Intent.createChooser(shareIntent, getString(R.string.share)));
 
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            actionMode.finish();
-                        }
-                    });
+                    getActivity().runOnUiThread(actionMode::finish);
                     break;
                 }
                 case R.id.menu_item_delete: {
@@ -96,20 +89,11 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                         mDeleteDialog = new AlertDialog.Builder(getActivity())
                                 .setTitle(R.string.delete)
                                 .setMessage(R.string.do_you_want_to_delete)
-                                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                .setPositiveButton(android.R.string.yes, (dialogInterface, which) -> {
+                                    List<WallpaperModel> items = mAdapter.getSelectedItems();
+                                    mAdapter.remove(getActivity(), new ArrayList<>(items));
 
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int which) {
-                                        List<WallpaperModel> items = mAdapter.getSelectedItems();
-                                        mAdapter.remove(getActivity(), new ArrayList<>(items));
-
-                                        getActivity().runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                actionMode.finish();
-                                            }
-                                        });
-                                    }
+                                    getActivity().runOnUiThread(actionMode::finish);
                                 })
                                 .setNegativeButton(android.R.string.no, null)
                                 .create();
@@ -155,7 +139,6 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         }
     };
 
-    @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_wallpaper_list, container, false);
@@ -169,7 +152,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         View discoveryButton = mEmptyView.findViewById(R.id.discovery_button);
         discoveryButton.setOnClickListener(this);
 
-        RecyclerView recyclerView = (RecyclerView) root.findViewById(R.id.recycler_view);
+        RecyclerView recyclerView = root.findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(mAdapter);
         recyclerView.addItemDecoration(new GridSpacingItemDecoration(layoutManager.getSpanCount(),
@@ -177,7 +160,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
         mAdapter.registerAdapterDataObserver(mObserver);
 
-        mRefreshLayout = (SwipeRefreshLayout) root.findViewById(R.id.swipe_layout);
+        mRefreshLayout = root.findViewById(R.id.swipe_layout);
         mRefreshLayout.setColorSchemeResources(R.color.primary);
         mRefreshLayout.setOnRefreshListener(this);
 
@@ -196,13 +179,9 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         super.onActivityCreated(savedInstanceState);
         mSnackBar = Snackbar.make(getActivity().findViewById(R.id.coordinator_layout), R.string.it_needs_to_set_live_wallpaper, Snackbar.LENGTH_SHORT);
         mSnackBar.setActionTextColor(ActivityCompat.getColor(getActivity(), R.color.primary));
-        mSnackBar.setAction(R.string.set, new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
-                startActivity(LiveWallpaperService.getIntentForSetLiveWallpaper());
-                mSnackBar.dismiss();
-            }
+        mSnackBar.setAction(R.string.set, view -> {
+            startActivity(LiveWallpaperService.getIntentForSetLiveWallpaper());
+            mSnackBar.dismiss();
         });
     }
 
@@ -321,7 +300,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         }
 
         @Override
-        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             return new WallpaperViewHolder(LayoutInflater.from(parent.getContext()), parent, mListener);
         }
 
@@ -451,9 +430,6 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                 CheckBox checkBox = (CheckBox) itemView.getTag(R.id.check_box);
                 checkBox.setVisibility(View.VISIBLE);
                 checkBox.setChecked(selected);
-
-                TextView textView = (TextView) itemView.getTag(R.id.applied_count_view);
-                textView.setText(String.valueOf(model.getAppliedCount()));
             }
 
             @Override

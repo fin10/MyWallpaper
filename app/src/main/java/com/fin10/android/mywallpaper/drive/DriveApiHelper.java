@@ -59,7 +59,7 @@ final class DriveApiHelper {
 
         DriveApi.MetadataBufferResult result = folder.queryChildren(googleApiClient,
                 new Query.Builder()
-                        .addFilter(Filters.eq(SearchableField.TITLE, String.valueOf(model.getCreationTime())))
+                        .addFilter(Filters.eq(SearchableField.TITLE, String.valueOf(model.getId())))
                         .build())
                 .await();
         try {
@@ -69,7 +69,7 @@ final class DriveApiHelper {
             }
 
             if (result.getMetadataBuffer().getCount() != 0) {
-                LOGGER.error("{} already exists.", model.getCreationTime());
+                LOGGER.error("{} already exists.", model.getId());
                 return null;
             }
         } finally {
@@ -88,7 +88,7 @@ final class DriveApiHelper {
         if (!success) return null;
 
         MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
-                .setTitle(String.valueOf(model.getCreationTime()))
+                .setTitle(String.valueOf(model.getId()))
                 .setMimeType("image/png")
                 .build();
 
@@ -173,7 +173,7 @@ final class DriveApiHelper {
             List<Pair<String, String>> datas = new ArrayList<>();
             for (Metadata data : buffer) {
                 DriveId driveId = data.getDriveId();
-                datas.add(Pair.create(driveId.toInvariantString(), driveId.encodeToString()));
+                datas.add(Pair.create(data.getTitle(), driveId.encodeToString()));
             }
 
             LOGGER.debug("count:{}", datas.size());

@@ -27,8 +27,11 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public final class SyncScheduler {
 
@@ -56,11 +59,9 @@ public final class SyncScheduler {
     }
 
     public static void dismiss(@NonNull Context context, @NonNull List<WallpaperModel> models) {
-        ArrayList<String> ids = new ArrayList<>(models.size());
-        for (WallpaperModel model : models) {
-            String source = model.getSource();
-            if (!TextUtils.isEmpty(source)) ids.add(source);
-        }
+        ArrayList<String> ids = models.stream()
+                .map(model -> String.valueOf(model.getId()))
+                .collect(Collectors.toCollection(ArrayList::new));
 
         Intent intent = new Intent(context, SyncService.class);
         intent.setAction(INTENT_ACTION_DISMISS);
@@ -77,12 +78,14 @@ public final class SyncScheduler {
                 .build();
 
         JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-        jobScheduler.schedule(jobInfo);
+        if (jobScheduler != null) jobScheduler.schedule(jobInfo);
+        else LOGGER.error("Unable to get JobScheduler.");
     }
 
     public static void stop(@NonNull Context context) {
         JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-        jobScheduler.cancel(JOB_ID);
+        if (jobScheduler != null) jobScheduler.cancel(JOB_ID);
+        else LOGGER.error("Unable to get JobScheduler.");
     }
 
     public static final class SyncService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -127,15 +130,14 @@ public final class SyncScheduler {
                 @Override
                 protected Boolean doInBackground(Void... voids) {
                     DriveApiHelper.sync(mGoogleApiClient);
-                    String userId = DriveApiHelper.getUserId(mGoogleApiClient);
                     if (INTENT_ACTION_SYNC.equals(action)) {
                         List<Pair<String, String>> ids = DriveApiHelper.getWallpaperIds(mGoogleApiClient);
-                        List<WallpaperModel> models = WallpaperModel.getModels(userId);
+                        List<WallpaperModel> models = WallpaperModel.getModels();
                         List<WallpaperModel> removeItems = new ArrayList<>();
                         for (WallpaperModel model : models) {
                             boolean found = false;
                             for (Pair<String, String> id : ids) {
-                                if (model.getSource().equals(id.first)) {
+                                if (id.first.equals(String.valueOf(model.getId()))) {
                                     found = true;
                                     break;
                                 }
@@ -146,29 +148,41 @@ public final class SyncScheduler {
 
                         for (WallpaperModel model : removeItems) {
                             WallpaperModel.removeModel(model);
-                            LOGGER.debug("{} is removed.", model.getCreationTime());
+                            LOGGER.debug("{} is removed.", model.getId());
                         }
 
-                        models = WallpaperModel.getModels(WallpaperModel.UserId.DEVICE);
+                        models = WallpaperModel.getModels();
                         for (WallpaperModel model : models) {
                             String id = DriveApiHelper.upload(mGoogleApiClient, model);
-                            if (!TextUtils.isEmpty(id)) model.update(userId, id);
+                            if (!TextUtils.isEmpty(id)) {
+                                model.setSynced(true);
+                                model.update();
+                            }
                         }
 
                         for (Pair<String, String> id : ids) {
-                            WallpaperModel model = WallpaperModel.getModel(id.first);
+                            WallpaperModel model = WallpaperModel.getModel(Long.parseLong(id.first));
                             if (model == null) {
                                 String path = DriveApiHelper.download(mGoogleApiClient, id.second);
-                                if (!TextUtils.isEmpty(path)) WallpaperModel.addModel(userId, id.first, path);
+                                if (!TextUtils.isEmpty(path)) {
+                                    try {
+                                        WallpaperModel.addModel(getApplicationContext(), Long.parseLong(id.first), new File(path), true);
+                                    } catch (IOException e) {
+                                        LOGGER.error(e.getLocalizedMessage(), e);
+                                    }
+                                }
                             }
                         }
                     } else if (INTENT_ACTION_UPLOAD.equals(action)) {
                         long modelId = mIntent.getLongExtra(EXTRA_MODEL_ID, -1);
                         LOGGER.debug("modelId:{}", modelId);
-                        WallpaperModel model = WallpaperModel.getModel(WallpaperModel.UserId.DEVICE, modelId);
+                        WallpaperModel model = WallpaperModel.getModel(modelId);
                         if (model != null) {
                             String id = DriveApiHelper.upload(mGoogleApiClient, model);
-                            if (!TextUtils.isEmpty(id)) model.update(userId, id);
+                            if (!TextUtils.isEmpty(id)) {
+                                model.setSynced(true);
+                                model.update();
+                            }
                         }
                     } else if (INTENT_ACTION_DISMISS.equals(action)) {
                         List<String> removed = mIntent.getStringArrayListExtra(EXTRA_MODEL_ID_LIST);
