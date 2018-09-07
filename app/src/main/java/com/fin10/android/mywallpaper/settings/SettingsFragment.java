@@ -14,7 +14,7 @@ import android.view.View;
 
 import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.drive.LoginActivity;
-import com.fin10.android.mywallpaper.drive.SyncScheduler;
+import com.fin10.android.mywallpaper.drive.SyncManager;
 import com.fin10.android.mywallpaper.live.LiveWallpaperService;
 import com.fin10.android.mywallpaper.live.WallpaperChangeScheduler;
 
@@ -75,7 +75,7 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
                     PreferenceModel.setSyncEnabled(context, true);
                     SwitchPreference pref = (SwitchPreference) findPreference(getString(R.string.pref_key_sync_enabled));
                     pref.setChecked(true);
-                    SyncScheduler.start(context);
+                    SyncManager.start(context);
                 }
                 break;
             }
@@ -84,7 +84,7 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
                 PreferenceModel.setSyncEnabled(context, false);
                 SwitchPreference pref = (SwitchPreference) findPreference(getString(R.string.pref_key_sync_enabled));
                 pref.setChecked(false);
-                SyncScheduler.stop(context);
+                SyncManager.stop(context);
             }
         }
     }

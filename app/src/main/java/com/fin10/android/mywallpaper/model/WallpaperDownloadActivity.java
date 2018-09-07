@@ -26,9 +26,10 @@ import com.fin10.android.mywallpaper.BuildConfig;
 import com.fin10.android.mywallpaper.MainActivity;
 import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.Utils;
-import com.fin10.android.mywallpaper.drive.SyncScheduler;
+import com.fin10.android.mywallpaper.drive.SyncManager;
 import com.fin10.android.mywallpaper.settings.PreferenceModel;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -217,9 +218,12 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
                                     .downloadOnly(size.first, size.second)
                                     .get();
 
-                            WallpaperModel result = WallpaperModel.addModel(getBaseContext(), file);
+                            File copied = new File(context.getDataDir().getAbsoluteFile() + "/" + System.currentTimeMillis() + ".png");
+                            FileUtils.copyFile(file, copied);
+
+                            WallpaperModel result = WallpaperModel.addModel(copied);
                             if (result != null && PreferenceModel.isSyncEnabled(getBaseContext())) {
-                                SyncScheduler.upload(getBaseContext(), result);
+                                SyncManager.upload(getBaseContext(), result);
                             }
 
                             return Glide.with(context)

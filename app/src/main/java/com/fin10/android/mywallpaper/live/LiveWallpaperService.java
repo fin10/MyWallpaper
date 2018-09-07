@@ -21,7 +21,7 @@ import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.fin10.android.mywallpaper.BuildConfig;
 import com.fin10.android.mywallpaper.R;
-import com.fin10.android.mywallpaper.drive.SyncScheduler;
+import com.fin10.android.mywallpaper.drive.SyncManager;
 import com.fin10.android.mywallpaper.model.WallpaperChanger;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
 import com.fin10.android.mywallpaper.settings.PreferenceModel;
@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 
 public final class LiveWallpaperService extends WallpaperService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SyncScheduler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SyncManager.class);
 
     private final BroadcastReceiver mReceiver = new WallpaperChanger.Receiver();
 

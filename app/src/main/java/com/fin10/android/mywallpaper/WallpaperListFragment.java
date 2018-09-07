@@ -25,7 +25,7 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
-import com.fin10.android.mywallpaper.drive.SyncScheduler;
+import com.fin10.android.mywallpaper.drive.SyncManager;
 import com.fin10.android.mywallpaper.live.LiveWallpaperService;
 import com.fin10.android.mywallpaper.model.WallpaperChanger;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
@@ -165,7 +165,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         mRefreshLayout.setOnRefreshListener(this);
 
         if (PreferenceModel.isSyncEnabled(getActivity())) {
-            SyncScheduler.sync(getActivity());
+            SyncManager.sync(getActivity());
             mRefreshLayout.setEnabled(true);
         } else {
             mRefreshLayout.setEnabled(false);
@@ -189,7 +189,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
     public void onResume() {
         super.onResume();
         if (PreferenceModel.isSyncEnabled(getActivity())) {
-            SyncScheduler.sync(getActivity());
+            SyncManager.sync(getActivity());
             mRefreshLayout.setEnabled(true);
         } else {
             mRefreshLayout.setEnabled(false);
@@ -258,11 +258,11 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
     @Override
     public void onRefresh() {
-        SyncScheduler.sync(getActivity());
+        SyncManager.sync(getActivity());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onSyncEvent(@NonNull SyncScheduler.SyncEvent event) {
+    public void onSyncEvent(@NonNull SyncManager.SyncEvent event) {
         LOGGER.debug("{}", event.success);
         mRefreshLayout.setRefreshing(false);
 
@@ -391,7 +391,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
             }
 
             if (PreferenceModel.isSyncEnabled(context)) {
-                SyncScheduler.dismiss(context, models);
+                SyncManager.dismiss(context, models);
             }
         }
 

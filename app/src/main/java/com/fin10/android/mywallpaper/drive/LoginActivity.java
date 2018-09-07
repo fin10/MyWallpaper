@@ -2,43 +2,38 @@ package com.fin10.android.mywallpaper.drive;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 
 import com.fin10.android.mywallpaper.R;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.drive.Drive;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class LoginActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public final class LoginActivity extends Activity {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LoginActivity.class);
 
-    private static final String INTENT_ACTION_LOGIN = "login";
-    private static final String INTENT_ACTION_LOGOUT = "logout";
+    private static final String ACTION_SIGN_IN = "sign-in";
+    private static final String ACTION_SIGN_OUT = "sign-out";
 
-    private static final int REQUEST_CODE_CONNECT = 1;
-    private static final int REQUEST_CODE_ERROR = 2;
-
-    private GoogleApiClient mGoogleApiClient;
+    private static final int REQUEST_CODE_SIGN_IN = 1;
 
     public static void login(@NonNull Fragment fragment, int requestCode) {
         Intent intent = new Intent(fragment.getActivity(), LoginActivity.class);
-        intent.setAction(INTENT_ACTION_LOGIN);
+        intent.setAction(ACTION_SIGN_IN);
         fragment.startActivityForResult(intent, requestCode);
     }
 
     public static void logout(@NonNull Fragment fragment, int requestCode) {
         Intent intent = new Intent(fragment.getActivity(), LoginActivity.class);
-        intent.setAction(INTENT_ACTION_LOGOUT);
+        intent.setAction(ACTION_SIGN_OUT);
         fragment.startActivityForResult(intent, requestCode);
     }
 
@@ -46,23 +41,19 @@ public final class LoginActivity extends AppCompatActivity implements GoogleApiC
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        mGoogleApiClient = DriveApiHelper.createGoogleApiClient(this);
-        mGoogleApiClient.registerConnectionCallbacks(this);
-        mGoogleApiClient.registerConnectionFailedListener(this);
-    }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mGoogleApiClient.connect();
-    }
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder()
+                .requestScopes(Drive.SCOPE_FILE)
+                .build();
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        mGoogleApiClient.disconnect();
-        mGoogleApiClient.unregisterConnectionCallbacks(this);
-        mGoogleApiClient.unregisterConnectionFailedListener(this);
+        GoogleSignInClient client = GoogleSignIn.getClient(this, gso);
+
+        String action = getIntent().getAction();
+        if (ACTION_SIGN_IN.equals(action)) {
+            startActivityForResult(client.getSignInIntent(), REQUEST_CODE_SIGN_IN);
+        } else if (ACTION_SIGN_OUT.equals(action)) {
+            client.signOut();
+        }
     }
 
     @Override
@@ -70,11 +61,9 @@ public final class LoginActivity extends AppCompatActivity implements GoogleApiC
         super.onActivityResult(requestCode, resultCode, data);
         LOGGER.debug("requestCode:{}, resultCode:{}", requestCode, resultCode);
         switch (requestCode) {
-            case REQUEST_CODE_CONNECT: {
-                if (resultCode == Activity.RESULT_OK) {
-                    mGoogleApiClient.connect();
-                    return;
-                }
+            case REQUEST_CODE_SIGN_IN: {
+                LOGGER.info("Login succeed.");
+                setResult(RESULT_OK);
                 break;
             }
         }
@@ -85,52 +74,5 @@ public final class LoginActivity extends AppCompatActivity implements GoogleApiC
     @Override
     public void onBackPressed() {
         //have to ignore
-    }
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        String action = getIntent().getAction();
-        if (INTENT_ACTION_LOGIN.equals(action)) {
-            setResult(RESULT_OK);
-        } else if (INTENT_ACTION_LOGOUT.equals(action)) {
-            mGoogleApiClient.unregisterConnectionCallbacks(this);
-            mGoogleApiClient.unregisterConnectionFailedListener(this);
-            mGoogleApiClient.clearDefaultAccountAndReconnect();
-            setResult(RESULT_OK);
-        }
-
-        finish();
-    }
-
-    @Override
-    public void onConnectionSuspended(int cause) {
-        LOGGER.error("cause:{}", cause);
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        LOGGER.debug(connectionResult.toString());
-        String action = getIntent().getAction();
-        if (INTENT_ACTION_LOGIN.equals(action)) {
-            if (connectionResult.hasResolution() && connectionResult.getErrorCode() == ConnectionResult.SIGN_IN_REQUIRED) {
-                try {
-                    connectionResult.startResolutionForResult(this, REQUEST_CODE_CONNECT);
-                    return;
-                } catch (IntentSender.SendIntentException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                GoogleApiAvailability.getInstance().showErrorDialogFragment(this, connectionResult.getErrorCode(), REQUEST_CODE_ERROR,
-                        new DialogInterface.OnCancelListener() {
-                            @Override
-                            public void onCancel(DialogInterface dialogInterface) {
-                                finish();
-                            }
-                        });
-                return;
-            }
-        }
-
-        finish();
     }
 }

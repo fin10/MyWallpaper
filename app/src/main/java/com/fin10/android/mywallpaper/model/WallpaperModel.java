@@ -1,6 +1,5 @@
 package com.fin10.android.mywallpaper.model;
 
-import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -11,13 +10,11 @@ import com.raizlabs.android.dbflow.annotation.Table;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.raizlabs.android.dbflow.structure.BaseModel;
 
-import org.apache.commons.io.FileUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -54,19 +51,16 @@ public final class WallpaperModel extends BaseModel {
     }
 
     @NonNull
-    public static WallpaperModel addModel(@NonNull Context context, @NonNull File source) throws IOException {
-        return addModel(context, System.currentTimeMillis(), source, false);
+    public static WallpaperModel addModel(@NonNull File file) {
+        return addModel(System.currentTimeMillis(), file, false);
     }
 
     @NonNull
-    public static WallpaperModel addModel(@NonNull Context context, long id, @NonNull File source, boolean synced) throws IOException {
+    public static WallpaperModel addModel(long id, @NonNull File file, boolean synced) {
         WallpaperModel model = new WallpaperModel();
         model.setId(id);
         model.setSynced(synced);
-
-        File dest = new File(context.getDataDir().getAbsoluteFile() + "/" + model.getImagePath() + ".png");
-        FileUtils.copyFile(source, dest);
-        model.setImagePath(dest.getAbsolutePath());
+        model.setImagePath(file.getAbsolutePath());
 
         model.insert();
         EventBus.getDefault().post(new AddEvent(model));
