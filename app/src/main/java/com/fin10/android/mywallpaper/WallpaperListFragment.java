@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -309,21 +310,20 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
         @Subscribe(threadMode = ThreadMode.MAIN)
         public void onAdded(@NonNull WallpaperModel.AddEvent event) {
-            mModels.add(0, event.model);
-            notifyItemInserted(0);
+            mModels.add(event.model);
+            mModels.sort(Comparator.comparingLong(WallpaperModel::getId).reversed());
+            notifyItemInserted(mModels.indexOf(event.model));
         }
 
         @Subscribe(threadMode = ThreadMode.MAIN)
         public void onUpdated(@NonNull WallpaperModel.UpdateEvent event) {
-            for (int i = 0; i < mModels.size(); ++i) {
-                if (mModels.get(i).getId() == event.model.getId()) {
-                    mModels.set(i, event.model);
-                    notifyItemChanged(i);
-                    return;
-                }
+            int index = mModels.indexOf(event.model);
+            if (index > 0) {
+                mModels.set(index, event.model);
+                notifyItemChanged(index);
+            } else {
+                LOGGER.error("{} not founds.", event.model.getId());
             }
-
-            LOGGER.error("{} not founds.", event.model.getId());
         }
 
         @Subscribe(threadMode = ThreadMode.MAIN)
