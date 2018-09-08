@@ -110,7 +110,7 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
         @NonNull
         private static Notification createDownloadingNotification(@NonNull Context context, @NonNull Uri uri, int id) {
             return new NotificationCompat.Builder(context)
-                    .setSmallIcon(R.drawable.ic_wallpaper_white_48dp)
+                    .setSmallIcon(R.drawable.ic_baseline_wallpaper_24px)
                     .setColor(ContextCompat.getColor(context, R.color.primary))
                     .setCategory(Notification.CATEGORY_PROGRESS)
                     .setContentTitle(context.getString(R.string.downloading_new_wallpaper))
@@ -118,7 +118,7 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
                     .setProgress(0, 0, true)
                     .setOngoing(true)
                     .setShowWhen(false)
-                    .addAction(R.drawable.ic_clear_black_24dp,
+                    .addAction(R.drawable.ic_baseline_clear_24px,
                             context.getString(android.R.string.cancel),
                             createCancelPendingIntent(context, id))
                     .build();
@@ -127,7 +127,7 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
         @NonNull
         private static Notification createDownloadedNotification(@NonNull Context context, @NonNull Bitmap bitmap) {
             return new NotificationCompat.Builder(context)
-                    .setSmallIcon(R.drawable.ic_wallpaper_white_48dp)
+                    .setSmallIcon(R.drawable.ic_baseline_wallpaper_24px)
                     .setColor(ContextCompat.getColor(context, R.color.primary))
                     .setCategory(Notification.CATEGORY_STATUS)
                     .setContentTitle(context.getString(R.string.download_complete))
@@ -142,7 +142,7 @@ public final class WallpaperDownloadActivity extends AppCompatActivity {
         @NonNull
         private static Notification createFailedNotification(@NonNull Context context, @NonNull Uri uri) {
             return new NotificationCompat.Builder(context)
-                    .setSmallIcon(R.drawable.ic_wallpaper_white_48dp)
+                    .setSmallIcon(R.drawable.ic_baseline_wallpaper_24px)
                     .setColor(ContextCompat.getColor(context, R.color.primary))
                     .setCategory(Notification.CATEGORY_ERROR)
                     .setContentTitle(context.getString(R.string.failed_to_download))

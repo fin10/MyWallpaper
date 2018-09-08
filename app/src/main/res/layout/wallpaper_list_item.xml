@@ -25,7 +25,7 @@
         android:layout_alignParentEnd="true"
         android:layout_margin="2dp"
         android:alpha="0.9"
-        android:src="@drawable/ic_bookmark_black_48dp"
+        android:src="@drawable/ic_baseline_bookmark_24px"
         android:tint="@color/marker"
         tools:ignore="ContentDescription" />
 
