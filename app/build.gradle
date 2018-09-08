@@ -29,13 +29,12 @@ android {
 
 def dbflow_version = "4.2.3"
 def support_version = "27.1.1"
-def play_version = "10.0.1"
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:0.5'
-    androidTestImplementation 'com.android.support.test:rules:0.5'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test:rules:1.0.2'
 
     implementation 'com.github.ugurtekbas:fadingIndicator:623a5c62ff'
     implementation 'com.github.bumptech.glide:glide:3.7.0'

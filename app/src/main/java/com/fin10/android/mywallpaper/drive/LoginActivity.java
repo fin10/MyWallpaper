@@ -52,7 +52,16 @@ public final class LoginActivity extends Activity {
         if (ACTION_SIGN_IN.equals(action)) {
             startActivityForResult(client.getSignInIntent(), REQUEST_CODE_SIGN_IN);
         } else if (ACTION_SIGN_OUT.equals(action)) {
-            client.signOut();
+            client.signOut()
+                    .addOnSuccessListener(v -> {
+                        LOGGER.info("Sign out succeed.");
+                        setResult(RESULT_OK);
+                    })
+                    .addOnFailureListener(e -> {
+                        LOGGER.error(e.getLocalizedMessage(), e);
+                        setResult(RESULT_CANCELED);
+                    })
+                    .addOnCompleteListener(v -> finish());
         }
     }
 
@@ -62,7 +71,7 @@ public final class LoginActivity extends Activity {
         LOGGER.debug("requestCode:{}, resultCode:{}", requestCode, resultCode);
         switch (requestCode) {
             case REQUEST_CODE_SIGN_IN: {
-                LOGGER.info("Login succeed.");
+                LOGGER.info("Sign in succeed.");
                 setResult(RESULT_OK);
                 break;
             }

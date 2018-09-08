@@ -75,11 +75,14 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
                 break;
             }
             case REQUEST_CODE_LOGOUT: {
-                Context context = getActivity();
-                PreferenceModel.setSyncEnabled(context, false);
-                SwitchPreference pref = (SwitchPreference) findPreference(getString(R.string.pref_key_sync_enabled));
-                pref.setChecked(false);
-                SyncManager.stop(context);
+                if (resultCode == Activity.RESULT_OK) {
+                    Context context = getActivity();
+                    PreferenceModel.setSyncEnabled(context, false);
+                    SwitchPreference pref = (SwitchPreference) findPreference(getString(R.string.pref_key_sync_enabled));
+                    pref.setChecked(false);
+                    SyncManager.stop(context);
+                }
+                break;
             }
         }
     }
