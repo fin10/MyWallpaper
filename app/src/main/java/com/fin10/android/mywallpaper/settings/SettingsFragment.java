@@ -10,7 +10,6 @@ import android.preference.SwitchPreference;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.text.TextUtils;
-import android.view.View;
 
 import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.drive.LoginActivity;
@@ -54,13 +53,9 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
         super.onActivityCreated(savedInstanceState);
         mSnackBar = Snackbar.make(getActivity().findViewById(R.id.coordinator_layout), R.string.it_needs_to_set_live_wallpaper, Snackbar.LENGTH_SHORT);
         mSnackBar.setActionTextColor(ActivityCompat.getColor(getActivity(), R.color.primary));
-        mSnackBar.setAction(R.string.set, new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
-                startActivity(LiveWallpaperService.getIntentForSetLiveWallpaper());
-                mSnackBar.dismiss();
-            }
+        mSnackBar.setAction(R.string.set, view -> {
+            startActivity(LiveWallpaperService.getIntentForSetLiveWallpaper());
+            mSnackBar.dismiss();
         });
     }
 
@@ -99,6 +94,9 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
                 if (!LiveWallpaperService.isSet(getActivity())) {
                     if (!mSnackBar.isShown()) mSnackBar.show();
                     return false;
+                } else {
+                    WallpaperChangeScheduler.stop(getActivity());
+                    WallpaperChangeScheduler.start(getActivity(), PreferenceModel.getInterval(getActivity()));
                 }
             } else {
                 WallpaperChangeScheduler.stop(getActivity());

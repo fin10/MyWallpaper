@@ -18,14 +18,18 @@ public final class WallpaperChangeScheduler extends BroadcastReceiver {
     private static final Logger LOGGER = LoggerFactory.getLogger(WallpaperChangeScheduler.class);
 
     public static void start(@NonNull Context context, long interval) {
-        LOGGER.debug("interval:{}", interval);
+        LOGGER.info("Starting wallpaper change scheduler with {} intervals.", interval);
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + interval, interval, createOperation(context));
+        if (am != null)
+            am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + interval, interval, createOperation(context));
+        else LOGGER.error("Unable to get AlarmManager");
     }
 
     public static void stop(@NonNull Context context) {
+        LOGGER.info("Stopping wallpaper change scheduler.");
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        am.cancel(createOperation(context));
+        if (am != null) am.cancel(createOperation(context));
+        else LOGGER.error("Unable to get AlarmManager");
     }
 
     @NonNull
@@ -36,8 +40,9 @@ public final class WallpaperChangeScheduler extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        LOGGER.info("Wallpaper change event received.");
         if (!LiveWallpaperService.isSet(context)) {
-            LOGGER.debug("Live wallpaper has not been set.");
+            LOGGER.error("Live wallpaper has not been set.");
             stop(context);
             return;
         }
