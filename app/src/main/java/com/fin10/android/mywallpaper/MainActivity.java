@@ -13,7 +13,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 
 import com.fin10.android.mywallpaper.model.WallpaperChanger;
 import com.fin10.android.mywallpaper.settings.PreferenceModel;
@@ -23,12 +22,8 @@ import com.fin10.android.mywallpaper.tutorial.TutorialActivity;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public final class MainActivity extends AppCompatActivity {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MainActivity.class);
 
     private BroadcastReceiver mReceiver;
     private Snackbar mSnackBar;
@@ -48,18 +43,12 @@ public final class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         EventBus.getDefault().register(this);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         mSnackBar = Snackbar.make(findViewById(R.id.coordinator_layout), R.string.wallpaper_is_changed, Snackbar.LENGTH_SHORT);
         mSnackBar.setActionTextColor(ActivityCompat.getColor(this, R.color.primary));
-        mSnackBar.setAction(R.string.close, new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
-                mSnackBar.dismiss();
-            }
-        });
+        mSnackBar.setAction(R.string.close, view -> mSnackBar.dismiss());
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
@@ -93,7 +82,6 @@ public final class MainActivity extends AppCompatActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onWallpaperChanged(@NonNull WallpaperChanger.ChangeWallpaperEvent event) {
-        LOGGER.debug("id:{}", event.id);
         if (!mSnackBar.isShown()) {
             mSnackBar.show();
         }

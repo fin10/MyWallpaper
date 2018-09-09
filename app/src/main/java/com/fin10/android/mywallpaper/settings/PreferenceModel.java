@@ -93,13 +93,13 @@ public final class PreferenceModel extends BaseModel {
         int period = getPeriod(context);
         switch (period) {
             case PeriodPreference.Period.SOMETIMES:
-                interval = 3 * AlarmManager.INTERVAL_DAY;
+                interval = AlarmManager.INTERVAL_HALF_DAY;
                 break;
             case PeriodPreference.Period.USUALLY:
-                interval = AlarmManager.INTERVAL_DAY;
+                interval = AlarmManager.INTERVAL_HOUR;
                 break;
             case PeriodPreference.Period.FREQUENTLY:
-                interval = 3 * AlarmManager.INTERVAL_HOUR;
+                interval = AlarmManager.INTERVAL_FIFTEEN_MINUTES;
                 break;
         }
 

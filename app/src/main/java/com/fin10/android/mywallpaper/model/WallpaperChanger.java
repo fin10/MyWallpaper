@@ -17,21 +17,19 @@ public final class WallpaperChanger {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WallpaperChanger.class);
 
-    public static boolean changeWallpaper(@NonNull final Context context, long id) {
+    public static void change(@NonNull final Context context, long id) {
         final WallpaperModel model = WallpaperModel.getModel(id);
         if (model == null) {
             LOGGER.error("{} not founds.", id);
-            return false;
+            return;
         }
 
-        LOGGER.debug("id:{}", id);
+        LOGGER.info("Wallpaper will be changed to {}", id);
         PreferenceModel.setCurrentWallpaper(context, model.getId());
 
         Intent intent = new Intent(Receiver.ACTION_WALLPAPER_CHANGED);
         intent.putExtra(Receiver.EXTRA_ID, model.getId());
         context.sendBroadcast(intent);
-
-        return true;
     }
 
     public static final class Receiver extends BroadcastReceiver {
@@ -46,9 +44,11 @@ public final class WallpaperChanger {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            LOGGER.debug("action:{}, id:{}", intent.getAction(), intent.getLongExtra(EXTRA_ID, -1));
-            if (ACTION_WALLPAPER_CHANGED.equals(intent.getAction())) {
-                EventBus.getDefault().post(new WallpaperChanger.ChangeWallpaperEvent(intent.getLongExtra(EXTRA_ID, -1)));
+            String action = intent.getAction();
+            long id = intent.getLongExtra(EXTRA_ID, -1);
+            LOGGER.debug("action:{}, id:{}", action, id);
+            if (ACTION_WALLPAPER_CHANGED.equals(action)) {
+                EventBus.getDefault().post(new WallpaperChanger.ChangeWallpaperEvent(id));
             }
         }
     }

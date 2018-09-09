@@ -39,7 +39,7 @@ public final class PeriodPreference extends Preference implements SeekBar.OnSeek
     @Override
     protected void onBindView(View view) {
         super.onBindView(view);
-        SeekBar seekBar = (SeekBar) view.findViewById(R.id.seek_bar);
+        SeekBar seekBar = view.findViewById(R.id.seek_bar);
         seekBar.setProgress(mPeriod);
         seekBar.setOnSeekBarChangeListener(this);
     }

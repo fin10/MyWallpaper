@@ -40,13 +40,8 @@ public final class LiveWallpaperService extends WallpaperService {
 
     @NonNull
     public static Intent getIntentForSetLiveWallpaper() {
-        return getIntentForSetLiveWallpaper(0);
-    }
-
-    @NonNull
-    public static Intent getIntentForSetLiveWallpaper(int flags) {
         Intent intent = new Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER);
-        if (flags != 0) intent.setFlags(flags);
+        intent.setFlags(0);
         intent.putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
                 new ComponentName(BuildConfig.APPLICATION_ID, LiveWallpaperService.class.getName()));
         return intent;

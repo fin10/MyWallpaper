@@ -21,7 +21,7 @@ public final class WallpaperChangeScheduler extends BroadcastReceiver {
         LOGGER.info("Starting wallpaper change scheduler with {} intervals.", interval);
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (am != null)
-            am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + interval, interval, createOperation(context));
+            am.setInexactRepeating(AlarmManager.RTC, System.currentTimeMillis() + interval, interval, createOperation(context));
         else LOGGER.error("Unable to get AlarmManager");
     }
 
@@ -49,7 +49,7 @@ public final class WallpaperChangeScheduler extends BroadcastReceiver {
 
         WallpaperModel model = WallpaperModel.sample();
         if (model != null) {
-            WallpaperChanger.changeWallpaper(context, model.getId());
+            WallpaperChanger.change(context, model.getId());
         } else {
             LOGGER.error("There is no wallpapers.");
         }

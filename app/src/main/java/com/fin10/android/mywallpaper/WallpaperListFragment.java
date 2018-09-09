@@ -217,7 +217,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                     if (!mSnackBar.isShown()) mSnackBar.show();
                 } else {
                     WallpaperModel model = mAdapter.mModels.get(position);
-                    WallpaperChanger.changeWallpaper(getActivity(), model.getId());
+                    WallpaperChanger.change(getActivity(), model.getId());
                 }
             } catch (IndexOutOfBoundsException e) {
                 LOGGER.error(e.getLocalizedMessage(), e);
