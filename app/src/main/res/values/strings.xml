@@ -6,9 +6,9 @@
     <string name="settings">Settings</string>
     <string name="wallpaper">Wallpaper</string>
     <string name="auto_change">Auto change</string>
-    <string name="sometimes">Sometimes</string>
-    <string name="usually">Usually</string>
-    <string name="frequently">Frequently</string>
+    <string name="sometimes">Once a day</string>
+    <string name="usually">Every hour</string>
+    <string name="frequently">Every 15 mins.</string>
     <string name="change_wallpaper_automatically">Change wallpaper automatically</string>
     <string name="wallpaper_is_changed">Wallpaper is changed.</string>
     <string name="close">Close</string>

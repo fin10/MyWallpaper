@@ -5,10 +5,10 @@
     <string name="share">공유</string>
     <string name="do_you_want_to_delete">선택된 배경화면을 삭제하시겠습니까?</string>
     <string name="settings">설정</string>
-    <string name="usually">보통</string>
+    <string name="usually">1시간마다</string>
     <string name="wallpaper">배경화면</string>
-    <string name="frequently">빈번하게</string>
-    <string name="sometimes">가끔</string>
+    <string name="frequently">15분마다</string>
+    <string name="sometimes">하루에 한 번</string>
     <string name="wallpaper_is_changed">배경화면이 변경되었습니다.</string>
     <string name="close">닫기</string>
     <string name="auto_change">자동 변경</string>
