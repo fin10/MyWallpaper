@@ -50,7 +50,6 @@
                 <category android:name="android.intent.category.DEFAULT"/>
 
                 <data android:mimeType="image/*"/>
-                <data android:mimeType="text/plain"/>
             </intent-filter>
 
             <intent-filter>
