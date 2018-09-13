@@ -106,7 +106,7 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
             }
         } else if (TextUtils.equals(key, getString(R.string.pref_key_auto_change_period)) && preference.isEnabled()) {
             WallpaperChangeScheduler.stop(getActivity());
-            WallpaperChangeScheduler.start(getActivity(), PreferenceModel.getInterval(getActivity()));
+            WallpaperChangeScheduler.start(getActivity(), PreferenceModel.getInterval((int) newValue));
         } else if (TextUtils.equals(key, getString(R.string.pref_key_sync_enabled))) {
             boolean value = (boolean) newValue;
             if (value) LoginActivity.login(this, REQUEST_CODE_LOGIN);

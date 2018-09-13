@@ -89,8 +89,11 @@ public final class PreferenceModel extends BaseModel {
     }
 
     public static long getInterval(@NonNull Context context) {
+        return getInterval(getPeriod(context));
+    }
+
+    public static long getInterval(int period) {
         long interval = AlarmManager.INTERVAL_DAY;
-        int period = getPeriod(context);
         switch (period) {
             case PeriodPreference.Period.SOMETIMES:
                 interval = AlarmManager.INTERVAL_HALF_DAY;
