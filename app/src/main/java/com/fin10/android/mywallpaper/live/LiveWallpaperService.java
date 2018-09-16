@@ -103,7 +103,6 @@ public final class LiveWallpaperService extends WallpaperService {
         }
 
         private void updateWallpaper(@NonNull Context context, final SurfaceHolder holder, int width, final int height, long id) {
-            LOGGER.debug("[{}:{}] {}", width, height, id);
             WallpaperModel model = WallpaperModel.getModel(id);
             if (model == null) {
                 LOGGER.error("{} not founds.", id);

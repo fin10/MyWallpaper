@@ -26,6 +26,7 @@ public final class WallpaperChanger {
 
         LOGGER.info("Wallpaper will be changed to {}", id);
         PreferenceModel.setCurrentWallpaper(context, model.getId());
+        EventBus.getDefault().post(new WallpaperChanger.ChangeWallpaperEvent(id));
 
         Intent intent = new Intent(Receiver.ACTION_WALLPAPER_CHANGED);
         intent.putExtra(Receiver.EXTRA_ID, model.getId());
