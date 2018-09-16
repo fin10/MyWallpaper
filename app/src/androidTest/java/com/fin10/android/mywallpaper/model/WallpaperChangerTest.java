@@ -17,31 +17,36 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
+import java.nio.file.Files;
+
 @RunWith(AndroidJUnit4.class)
 public final class WallpaperChangerTest {
 
     private final BroadcastReceiver receiver = new WallpaperChanger.Receiver();
     private final Thread thread = Thread.currentThread();
-    private final Context context = InstrumentationRegistry.getTargetContext();
-    private final WallpaperModel model = WallpaperModelTest.createTestModel();
+    private WallpaperModel model;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() throws IOException {
+        Context context = InstrumentationRegistry.getTargetContext();
         context.registerReceiver(receiver, WallpaperChanger.Receiver.getIntentFilter());
         EventBus.getDefault().register(this);
-        model.insert();
+        model = WallpaperModel.addModel(context, Files.createTempFile("tmp-", ".png").toFile());
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
+        Context context = InstrumentationRegistry.getTargetContext();
         context.unregisterReceiver(receiver);
         EventBus.getDefault().unregister(this);
-        model.delete();
+        WallpaperModel.removeModel(model);
     }
 
     @Test
-    public void testChangeWallpaper() throws Exception {
-        WallpaperChanger.changeWallpaper(context, model.getId());
+    public void testChangeWallpaper() {
+        Context context = InstrumentationRegistry.getTargetContext();
+        WallpaperChanger.change(context, model.getId());
 
         try {
             thread.join(1000);
