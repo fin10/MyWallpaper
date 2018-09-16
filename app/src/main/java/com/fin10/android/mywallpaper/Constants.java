@@ -1,6 +1,6 @@
 package com.fin10.android.mywallpaper;
 
-class Constants {
+final class Constants {
 
     private Constants() {
     }

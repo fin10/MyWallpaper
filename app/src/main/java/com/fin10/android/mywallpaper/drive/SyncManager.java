@@ -20,6 +20,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.Objects;
@@ -104,7 +105,13 @@ public final class SyncManager {
                         if (model != null) return null;
 
                         return DriveApiHelper.download(context, id)
-                                .addOnSuccessListener(file -> WallpaperModel.addModel(longId, file, true));
+                                .addOnSuccessListener(file -> {
+                                    try {
+                                        WallpaperModel.addModel(context, longId, file, true);
+                                    } catch (IOException e) {
+                                        LOGGER.error(e.getLocalizedMessage(), e);
+                                    }
+                                });
                     } catch (NumberFormatException e) {
                         LOGGER.error(e.getLocalizedMessage(), e);
                         return null;

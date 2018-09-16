@@ -180,7 +180,7 @@ final class DriveApiHelper {
                 .continueWithTask(task -> client.openFile(task.getResult(), DriveFile.MODE_READ_ONLY))
                 .continueWithTask(task -> {
                     DriveContents contents = task.getResult();
-                    File output = new File(context.getDataDir().getAbsolutePath() + "/" + id + ".png");
+                    File output = new File(context.getCacheDir().getAbsolutePath() + "/" + id + ".png");
                     FileUtils.copyInputStreamToFile(contents.getInputStream(), output);
                     return Tasks.forResult(output);
                 })

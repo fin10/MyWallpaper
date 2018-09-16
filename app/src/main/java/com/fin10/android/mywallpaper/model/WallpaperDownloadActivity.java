@@ -31,7 +31,6 @@ import com.fin10.android.mywallpaper.Utils;
 import com.fin10.android.mywallpaper.drive.SyncManager;
 import com.fin10.android.mywallpaper.settings.PreferenceModel;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -216,10 +215,7 @@ public final class WallpaperDownloadActivity extends Activity {
                         .downloadOnly(size.first, size.second)
                         .get();
 
-                File copied = new File(context.getDataDir().getAbsoluteFile() + "/" + System.currentTimeMillis() + ".png");
-                FileUtils.copyFile(file, copied);
-
-                WallpaperModel result = WallpaperModel.addModel(copied);
+                WallpaperModel result = WallpaperModel.addModel(context, file);
                 if (PreferenceModel.isSyncEnabled(context)) {
                     SyncManager.upload(context, result);
                 }
