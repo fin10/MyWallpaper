@@ -1,11 +1,9 @@
 package com.fin10.android.mywallpaper;
 
-import android.Manifest;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -51,10 +49,6 @@ public final class MainActivity extends AppCompatActivity {
         mSnackBar = Snackbar.make(findViewById(R.id.coordinator_layout), R.string.wallpaper_is_changed, Snackbar.LENGTH_SHORT);
         mSnackBar.setActionTextColor(ActivityCompat.getColor(this, R.color.primary));
         mSnackBar.setAction(R.string.close, view -> mSnackBar.dismiss());
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
-        }
     }
 
     @Override
