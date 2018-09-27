@@ -1,11 +1,8 @@
 package com.fin10.android.mywallpaper.drive;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.fin10.android.mywallpaper.R;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -15,6 +12,10 @@ import com.google.android.gms.drive.Drive;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 public final class LoginActivity extends Activity {
 

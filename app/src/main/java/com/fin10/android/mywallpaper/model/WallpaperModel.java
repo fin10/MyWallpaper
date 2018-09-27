@@ -1,8 +1,6 @@
 package com.fin10.android.mywallpaper.model;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.NotNull;
@@ -20,6 +18,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 @Table(database = WallpaperDatabase.class)
 public final class WallpaperModel extends BaseModel {

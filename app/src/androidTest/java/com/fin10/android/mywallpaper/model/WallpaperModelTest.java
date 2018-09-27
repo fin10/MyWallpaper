@@ -1,9 +1,6 @@
 package com.fin10.android.mywallpaper.model;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
 
 import com.raizlabs.android.dbflow.sql.language.SQLite;
 
@@ -17,6 +14,10 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
+
+import androidx.annotation.NonNull;
+import androidx.test.InstrumentationRegistry;
+import androidx.test.runner.AndroidJUnit4;
 
 @RunWith(AndroidJUnit4.class)
 public final class WallpaperModelTest {

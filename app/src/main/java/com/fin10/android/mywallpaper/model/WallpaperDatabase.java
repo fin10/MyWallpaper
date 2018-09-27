@@ -4,7 +4,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 
 import com.fin10.android.mywallpaper.settings.PreferenceModel;
 import com.fin10.android.mywallpaper.settings.PreferenceModel_Table;
@@ -23,6 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import androidx.annotation.NonNull;
 
 @Database(name = WallpaperDatabase.NAME, version = WallpaperDatabase.VERSION)
 public final class WallpaperDatabase {

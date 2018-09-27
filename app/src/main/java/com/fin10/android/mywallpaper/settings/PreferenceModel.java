@@ -2,8 +2,6 @@ package com.fin10.android.mywallpaper.settings;
 
 import android.app.AlarmManager;
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.fin10.android.mywallpaper.R;
@@ -13,6 +11,9 @@ import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.raizlabs.android.dbflow.structure.BaseModel;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 @Table(database = WallpaperDatabase.class)
 public final class PreferenceModel extends BaseModel {

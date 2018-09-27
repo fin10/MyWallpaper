@@ -1,7 +1,6 @@
 package com.fin10.android.mywallpaper.drive;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
 
 import com.fin10.android.mywallpaper.model.WallpaperModel;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -30,6 +29,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+
+import androidx.annotation.NonNull;
 
 final class DriveApiHelper {
 

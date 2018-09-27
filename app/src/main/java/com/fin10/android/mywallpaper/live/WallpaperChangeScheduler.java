@@ -5,13 +5,14 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.support.annotation.NonNull;
 
 import com.fin10.android.mywallpaper.model.WallpaperChanger;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import androidx.annotation.NonNull;
 
 public final class WallpaperChangeScheduler extends BroadcastReceiver {
 

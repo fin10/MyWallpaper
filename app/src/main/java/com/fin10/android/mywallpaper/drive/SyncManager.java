@@ -7,7 +7,6 @@ import android.app.job.JobService;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.support.annotation.NonNull;
 import android.text.format.DateUtils;
 
 import com.fin10.android.mywallpaper.model.WallpaperModel;
@@ -29,6 +28,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.stream.Collectors;
+
+import androidx.annotation.NonNull;
 
 public final class SyncManager {
 

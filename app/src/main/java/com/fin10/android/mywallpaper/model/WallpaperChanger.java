@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.support.annotation.NonNull;
 
 import com.fin10.android.mywallpaper.BuildConfig;
 import com.fin10.android.mywallpaper.settings.PreferenceModel;
@@ -12,6 +11,8 @@ import com.fin10.android.mywallpaper.settings.PreferenceModel;
 import org.greenrobot.eventbus.EventBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import androidx.annotation.NonNull;
 
 public final class WallpaperChanger {
 

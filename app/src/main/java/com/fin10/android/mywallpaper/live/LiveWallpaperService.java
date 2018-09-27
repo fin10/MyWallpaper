@@ -13,7 +13,6 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.service.wallpaper.WallpaperService;
-import android.support.annotation.NonNull;
 import android.view.SurfaceHolder;
 
 import com.bumptech.glide.Glide;
@@ -31,6 +30,8 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import androidx.annotation.NonNull;
 
 public final class LiveWallpaperService extends WallpaperService {
 

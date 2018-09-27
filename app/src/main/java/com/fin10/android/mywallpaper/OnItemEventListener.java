@@ -1,7 +1,8 @@
 package com.fin10.android.mywallpaper;
 
-import android.support.annotation.NonNull;
 import android.view.View;
+
+import androidx.annotation.NonNull;
 
 interface OnItemEventListener {
     void onItemClick(@NonNull View itemView, int position);

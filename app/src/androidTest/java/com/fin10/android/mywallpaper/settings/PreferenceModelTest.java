@@ -1,17 +1,16 @@
 package com.fin10.android.mywallpaper.settings;
 
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
-
 import com.fin10.android.mywallpaper.model.WallpaperDatabase;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
 
-import junit.framework.Assert;
-
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import androidx.test.InstrumentationRegistry;
+import androidx.test.runner.AndroidJUnit4;
 
 @RunWith(AndroidJUnit4.class)
 public final class PreferenceModelTest {
@@ -22,7 +21,7 @@ public final class PreferenceModelTest {
     private boolean initialized = false;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         if (!initialized) {
             WallpaperDatabase.init(InstrumentationRegistry.getTargetContext());
             initialized = true;
@@ -30,14 +29,14 @@ public final class PreferenceModelTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         SQLite.delete(PreferenceModel.class)
                 .where(PreferenceModel_Table.key.eq(TEST_KEY))
                 .execute();
     }
 
     @Test
-    public void testSetValue() throws Exception {
+    public void testSetValue() {
         Assert.assertNull(PreferenceModel.getValue(TEST_KEY));
         PreferenceModel.setValue(TEST_KEY, TEST_VALUE);
 
@@ -45,11 +44,13 @@ public final class PreferenceModelTest {
                 .from(PreferenceModel.class)
                 .where(PreferenceModel_Table.key.eq(TEST_KEY))
                 .querySingle();
+
+        Assert.assertNotNull(model);
         Assert.assertEquals(TEST_VALUE, model.mValue);
     }
 
     @Test
-    public void testGetValue() throws Exception {
+    public void testGetValue() {
         Assert.assertNull(PreferenceModel.getValue(TEST_KEY));
 
         PreferenceModel model = new PreferenceModel();

@@ -1,12 +1,14 @@
 package com.fin10.android.mywallpaper.settings;
 
 import android.content.Context;
-import android.preference.Preference;
 import android.util.AttributeSet;
-import android.view.View;
 import android.widget.SeekBar;
 
 import com.fin10.android.mywallpaper.R;
+
+import androidx.annotation.Nullable;
+import androidx.preference.Preference;
+import androidx.preference.PreferenceViewHolder;
 
 public final class PeriodPreference extends Preference implements SeekBar.OnSeekBarChangeListener {
 
@@ -37,16 +39,16 @@ public final class PeriodPreference extends Preference implements SeekBar.OnSeek
     }
 
     @Override
-    protected void onBindView(View view) {
-        super.onBindView(view);
-        SeekBar seekBar = view.findViewById(R.id.seek_bar);
+    public void onBindViewHolder(PreferenceViewHolder holder) {
+        super.onBindViewHolder(holder);
+        SeekBar seekBar = (SeekBar) holder.findViewById(R.id.seek_bar);
         seekBar.setProgress(mPeriod);
         seekBar.setOnSeekBarChangeListener(this);
     }
 
     @Override
-    protected void onSetInitialValue(boolean restoreValue, Object defaultValue) {
-        setPeriod(restoreValue ? getPersistedInt(mPeriod) : (Integer) defaultValue);
+    protected void onSetInitialValue(@Nullable Object defaultValue) {
+        setPeriod(getPersistedInt(mPeriod));
     }
 
     @Override

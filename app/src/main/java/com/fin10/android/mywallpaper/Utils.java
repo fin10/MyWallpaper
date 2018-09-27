@@ -2,10 +2,11 @@ package com.fin10.android.mywallpaper;
 
 import android.content.Context;
 import android.graphics.Point;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.Pair;
 import android.view.WindowManager;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public final class Utils {
 

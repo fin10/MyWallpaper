@@ -4,11 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.preference.Preference;
-import android.preference.PreferenceFragment;
-import android.preference.SwitchPreference;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
 import android.text.TextUtils;
 
 import com.fin10.android.mywallpaper.R;
@@ -16,11 +11,17 @@ import com.fin10.android.mywallpaper.drive.LoginActivity;
 import com.fin10.android.mywallpaper.drive.SyncManager;
 import com.fin10.android.mywallpaper.live.LiveWallpaperService;
 import com.fin10.android.mywallpaper.live.WallpaperChangeScheduler;
+import com.google.android.material.snackbar.Snackbar;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class SettingsFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener {
+import androidx.core.app.ActivityCompat;
+import androidx.preference.Preference;
+import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.SwitchPreference;
+
+public final class SettingsFragment extends PreferenceFragmentCompat implements Preference.OnPreferenceChangeListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SettingsFragment.class);
 
@@ -30,12 +31,12 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
     private Snackbar mSnackBar;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         addPreferencesFromResource(R.xml.settings);
 
         Context context = getActivity();
         SwitchPreference switchPreference = (SwitchPreference) findPreference(getString(R.string.pref_key_auto_change_enabled));
+        switchPreference.setIconSpaceReserved(false);
         switchPreference.setChecked(PreferenceModel.isAutoChangeEnabled(context));
         switchPreference.setOnPreferenceChangeListener(this);
 
@@ -44,6 +45,7 @@ public final class SettingsFragment extends PreferenceFragment implements Prefer
         periodPreference.setOnPreferenceChangeListener(this);
 
         switchPreference = (SwitchPreference) findPreference(getString(R.string.pref_key_sync_enabled));
+        switchPreference.setIconSpaceReserved(false);
         switchPreference.setChecked(PreferenceModel.isSyncEnabled(context));
         switchPreference.setOnPreferenceChangeListener(this);
     }

@@ -2,9 +2,6 @@ package com.fin10.android.mywallpaper.tutorial;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +12,10 @@ import android.widget.Switch;
 import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.live.LiveWallpaperService;
 import com.fin10.android.mywallpaper.settings.PreferenceModel;
+import com.google.android.material.snackbar.Snackbar;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
 
 public final class AutoChangeTutorialFragment extends TutorialFragment implements CompoundButton.OnCheckedChangeListener, SeekBar.OnSeekBarChangeListener {
 
