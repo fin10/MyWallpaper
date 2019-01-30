@@ -33,14 +33,14 @@ def support_version = "1.0.0"
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test:runner:1.1.0-alpha4'
-    androidTestImplementation 'androidx.test:rules:1.1.0-alpha4'
+    androidTestImplementation 'androidx.test:runner:1.1.1'
+    androidTestImplementation 'androidx.test:rules:1.1.1'
     implementation 'com.github.fin10:fadingIndicator:1.0.1'
     implementation 'com.github.bumptech.glide:glide:3.7.0'
     implementation 'org.greenrobot:eventbus:3.1.1'
     implementation "androidx.annotation:annotation:${support_version}"
     implementation "androidx.fragment:fragment:${support_version}"
-    implementation "androidx.appcompat:appcompat:${support_version}"
+    implementation 'androidx.appcompat:appcompat:1.0.2'
     implementation "androidx.recyclerview:recyclerview:${support_version}"
     implementation "androidx.cardview:cardview:${support_version}"
     implementation "androidx.preference:preference:${support_version}"
@@ -49,8 +49,16 @@ dependencies {
     annotationProcessor "com.github.Raizlabs.DBFlow:dbflow-processor:${dbflow_version}"
     implementation "com.github.Raizlabs.DBFlow:dbflow-core:${dbflow_version}"
     implementation "com.github.Raizlabs.DBFlow:dbflow:${dbflow_version}"
-    implementation 'com.google.android.gms:play-services-auth:16.0.0'
-    implementation 'com.google.android.gms:play-services-drive:15.0.1'
+    implementation 'com.google.android.gms:play-services-auth:16.0.1'
+    implementation 'pub.devrel:easypermissions:0.3.0'
+    implementation('com.google.api-client:google-api-client-android:1.23.0') {
+        exclude group: 'org.apache.httpcomponents'
+        exclude module: 'guava-jdk5'
+    }
+    implementation('com.google.apis:google-api-services-drive:v3-rev110-1.23.0') {
+        exclude group: 'org.apache.httpcomponents'
+        exclude module: 'guava-jdk5'
+    }
     implementation 'org.slf4j:slf4j-api:1.7.25'
     implementation 'com.github.tony19:logback-android:1.1.1-12'
     implementation 'com.google.guava:guava:26.0-android'

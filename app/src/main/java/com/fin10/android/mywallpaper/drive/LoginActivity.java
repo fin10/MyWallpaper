@@ -8,7 +8,8 @@ import com.fin10.android.mywallpaper.R;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.drive.Drive;
+import com.google.android.gms.common.Scopes;
+import com.google.android.gms.common.api.Scope;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +45,7 @@ public final class LoginActivity extends Activity {
         setContentView(R.layout.activity_login);
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder()
-                .requestScopes(Drive.SCOPE_FILE)
+                .requestScopes(new Scope(Scopes.DRIVE_FILE))
                 .build();
 
         GoogleSignInClient client = GoogleSignIn.getClient(this, gso);
@@ -83,6 +84,6 @@ public final class LoginActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        //have to ignore
+        //Should be ignored
     }
 }

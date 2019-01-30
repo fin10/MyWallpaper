@@ -2,121 +2,94 @@ package com.fin10.android.mywallpaper.drive;
 
 import android.content.Context;
 
+import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.drive.Drive;
-import com.google.android.gms.drive.DriveContents;
-import com.google.android.gms.drive.DriveFile;
-import com.google.android.gms.drive.DriveFolder;
-import com.google.android.gms.drive.DriveResource;
-import com.google.android.gms.drive.DriveResourceClient;
-import com.google.android.gms.drive.Metadata;
-import com.google.android.gms.drive.MetadataBuffer;
-import com.google.android.gms.drive.MetadataChangeSet;
-import com.google.android.gms.drive.query.Filters;
-import com.google.android.gms.drive.query.Query;
-import com.google.android.gms.drive.query.SearchableField;
+import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.http.FileContent;
+import com.google.api.client.http.HttpRequestInitializer;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.services.drive.Drive;
+import com.google.api.services.drive.model.File;
+import com.google.api.services.drive.model.FileList;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import androidx.annotation.NonNull;
 
 final class DriveApiHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DriveApiHelper.class);
+    private static final ThreadPoolExecutor EXECUTOR;
 
-    private static final String ROOT_FOLDER_TITLE = "My Wallpaper";
+    private static final String ROOT_FOLDER = "appDataFolder";
+
+    static {
+        int numCores = Runtime.getRuntime().availableProcessors();
+        EXECUTOR = new ThreadPoolExecutor(numCores * 2, numCores * 2,
+                60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+    }
 
     private DriveApiHelper() {
     }
 
     @NonNull
-    private static Task<DriveFolder> getFolder(@NonNull DriveResourceClient client) {
-        Task<DriveFolder> rootFolderTask = client.getRootFolder();
+    private static Drive getDrive(@NonNull Context context, @NonNull GoogleSignInAccount account) {
+        final HttpTransport httpTransport = new NetHttpTransport();
+        final JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+        final HttpRequestInitializer initializer = GoogleAccountCredential.usingOAuth2(
+                context,
+                account.getGrantedScopes().stream().map(Scope::toString).collect(Collectors.toSet())
+        ).setSelectedAccount(account.getAccount());
 
-        return rootFolderTask
-                .continueWithTask(task -> {
-                    DriveFolder root = rootFolderTask.getResult();
-                    return client.queryChildren(root,
-                            new Query.Builder()
-                                    .addFilter(Filters.and(
-                                            Filters.eq(SearchableField.TITLE, ROOT_FOLDER_TITLE),
-                                            Filters.eq(SearchableField.TRASHED, false)
-                                    ))
-                                    .build());
-                })
-                .continueWithTask(task -> {
-                    MetadataBuffer buffer = task.getResult();
-                    if (buffer.getCount() == 0) {
-                        MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
-                                .setTitle(ROOT_FOLDER_TITLE)
-                                .build();
-
-                        return client.createFolder(rootFolderTask.getResult(), changeSet);
-                    } else {
-                        return Tasks.forResult(buffer.get(0).getDriveId().asDriveFolder());
-                    }
-                });
+        return new Drive.Builder(httpTransport, jsonFactory, initializer)
+                .setApplicationName(context.getString(R.string.app_name))
+                .build();
     }
 
     @NonNull
-    static Task<DriveFile> upload(@NonNull Context context, @NonNull WallpaperModel model) {
+    static Task<File> upload(@NonNull Context context, @NonNull WallpaperModel model) {
         LOGGER.info("Uploading a model: {}", model.getId());
 
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(context);
+        final GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(context);
         if (account == null) {
             throw new IllegalStateException("Signed account not founds.");
         }
 
-        DriveResourceClient client = Drive.getDriveResourceClient(context, account);
-        return getFolder(client)
-                .continueWithTask(task -> {
-                    DriveFolder appFolder = task.getResult();
-                    return client
-                            .queryChildren(appFolder,
-                                    new Query.Builder()
-                                            .addFilter(Filters.and(
-                                                    Filters.eq(SearchableField.TITLE, String.valueOf(model.getId())),
-                                                    Filters.eq(SearchableField.TRASHED, false)
-                                            ))
-                                            .build())
-                            .continueWithTask(queryChildrenTask -> {
-                                MetadataBuffer buffer = queryChildrenTask.getResult();
-                                try {
-                                    return buffer.getCount() == 0 ?
-                                            Tasks.forResult(appFolder) :
-                                            Tasks.forException(new IllegalArgumentException(model.getId() + " already exists."));
-                                } finally {
-                                    buffer.release();
-                                }
-                            });
-                })
-                .continueWithTask(task -> {
-                    DriveFolder appFolder = task.getResult();
-                    return client.createContents()
-                            .continueWithTask(createContentsTask -> {
-                                DriveContents contents = createContentsTask.getResult();
-                                FileUtils.copyFile(new File(model.getImagePath()), contents.getOutputStream());
+        final Drive service = getDrive(context, account);
 
-                                MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
-                                        .setTitle(String.valueOf(model.getId()))
-                                        .setMimeType("image/png")
-                                        .build();
+        return Tasks.call(EXECUTOR, () -> {
+            final FileList fileList = service.files().list().setQ(String.format("name = '%s' and trashed = false", model.getId())).execute();
+            if (!fileList.isEmpty())
+                throw new IllegalArgumentException(model.getId() + " already exists in drive");
 
-                                return client.createFile(appFolder, changeSet, contents);
-                            });
-                })
+            final File content = new File();
+            content.setParents(Collections.singletonList(ROOT_FOLDER));
+            content.setName(String.valueOf(model.getId()));
+
+            final FileContent mediaContent = new FileContent("image/png", new java.io.File(model.getImagePath()));
+            return service.files().create(content, mediaContent).execute();
+        })
                 .addOnSuccessListener(v -> LOGGER.info("Model uploaded: {}", model.getId()))
                 .addOnFailureListener(e -> LOGGER.error("Failed to upload model: {}.", model.getId(), e));
     }
@@ -125,66 +98,44 @@ final class DriveApiHelper {
     static Task<Set<String>> fetchDriveIds(@NonNull Context context) {
         LOGGER.info("Fetching drive files...");
 
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(context);
+        final GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(context);
         if (account == null) {
             throw new IllegalStateException("Signed account not founds.");
         }
 
-        DriveResourceClient client = Drive.getDriveResourceClient(context, account);
-        return getFolder(client)
-                .continueWithTask(task -> client.queryChildren(task.getResult(),
-                        new Query.Builder()
-                                .addFilter(Filters.eq(SearchableField.TRASHED, false))
-                                .build()))
-                .continueWithTask(task -> {
-                    MetadataBuffer buffer = task.getResult();
-                    try {
-                        Set<String> ids = StreamSupport.stream(buffer.spliterator(), false)
-                                .map(Metadata::getTitle).collect(Collectors.toSet());
-                        return Tasks.forResult(ids);
-                    } finally {
-                        buffer.release();
-                    }
-                })
+        final Drive service = getDrive(context, account);
+
+        return Tasks.call(EXECUTOR, () -> {
+            final FileList fileList = service.files().list().setSpaces(ROOT_FOLDER).setQ("trashed = false").execute();
+            return fileList.getFiles().stream().map(File::getName).collect(Collectors.toSet());
+        })
                 .addOnSuccessListener(ids -> LOGGER.info("{} files fetched.", ids.size()))
                 .addOnFailureListener(e -> LOGGER.error("Failed to fetch drive ids.", e));
     }
 
     @NonNull
-    static Task<File> download(@NonNull Context context, @NonNull String id) {
+    static Task<java.io.File> download(@NonNull Context context, @NonNull String id) {
         LOGGER.info("Downloading a drive file: {}", id);
 
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(context);
+        final GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(context);
         if (account == null) {
             throw new IllegalStateException("Signed account not founds.");
         }
 
-        DriveResourceClient client = Drive.getDriveResourceClient(context, account);
-        return getFolder(client)
-                .continueWithTask(task -> client.queryChildren(task.getResult(),
-                        new Query.Builder()
-                                .addFilter(Filters.and(
-                                        Filters.eq(SearchableField.TITLE, id),
-                                        Filters.eq(SearchableField.TRASHED, false)
-                                ))
-                                .build()))
-                .continueWithTask(task -> {
-                    MetadataBuffer buffer = task.getResult();
-                    try {
-                        if (buffer.getCount() == 0)
-                            return Tasks.forException(new IllegalArgumentException(id + " not founds."));
-                        else return Tasks.forResult(buffer.get(0).getDriveId().asDriveFile());
-                    } finally {
-                        buffer.release();
-                    }
-                })
-                .continueWithTask(task -> client.openFile(task.getResult(), DriveFile.MODE_READ_ONLY))
-                .continueWithTask(task -> {
-                    DriveContents contents = task.getResult();
-                    File output = new File(context.getCacheDir().getAbsolutePath() + "/" + id + ".png");
-                    FileUtils.copyInputStreamToFile(contents.getInputStream(), output);
-                    return Tasks.forResult(output);
-                })
+        final Drive service = getDrive(context, account);
+
+        return Tasks.call(EXECUTOR, () -> {
+            final FileList fileList = service.files().list().setSpaces(ROOT_FOLDER).setQ(String.format("name = '%s' and trashed = false", id)).execute();
+            final Optional<File> file = fileList.getFiles().stream().findFirst();
+            if (!file.isPresent()) {
+                throw new FileNotFoundException(id + " not exists in drive");
+            }
+
+            final java.io.File output = new java.io.File(context.getCacheDir().getAbsolutePath() + "/" + id + ".png");
+            service.files().get(file.get().getId()).executeMediaAndDownloadTo(new FileOutputStream(output));
+
+            return output;
+        })
                 .addOnSuccessListener(imagePath -> LOGGER.info("Downloaded drive file to {}", imagePath))
                 .addOnFailureListener(e -> LOGGER.error("Failed to download drive file: {}.", id, e));
     }
@@ -192,35 +143,32 @@ final class DriveApiHelper {
     static void dismiss(@NonNull Context context, @NonNull List<WallpaperModel> models) {
         LOGGER.info("{} models will be dismissed from drive.", models.size());
 
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(context);
+        final GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(context);
         if (account == null) {
             throw new IllegalStateException("Signed account not founds.");
         }
 
-        Set<String> ids = models.stream()
+        final Set<String> ids = models.stream()
                 .map(WallpaperModel::getId)
                 .map(String::valueOf)
                 .collect(Collectors.toSet());
 
-        DriveResourceClient client = Drive.getDriveResourceClient(context, account);
-        getFolder(client)
-                .continueWithTask(task -> client.queryChildren(task.getResult(),
-                        new Query.Builder()
-                                .addFilter(Filters.eq(SearchableField.TRASHED, false))
-                                .build()))
-                .continueWithTask(task -> {
-                    MetadataBuffer buffer = task.getResult();
-                    try {
-                        Set<DriveResource> files = StreamSupport.stream(buffer.spliterator(), false)
-                                .filter(data -> ids.contains(data.getTitle()))
-                                .map(data -> data.getDriveId().asDriveResource())
-                                .collect(Collectors.toSet());
-                        return Tasks.whenAll(files.stream().map(client::delete).collect(Collectors.toSet()))
-                                .continueWithTask(v -> Tasks.forResult(files.size()));
-                    } finally {
-                        buffer.release();
-                    }
-                })
+        final Drive service = getDrive(context, account);
+
+        Tasks.call(EXECUTOR, () -> {
+            final FileList fileList = service.files().list().setSpaces(ROOT_FOLDER).setQ("trashed = false").execute();
+            return fileList.getFiles().stream()
+                    .filter(file -> ids.contains(file.getName()))
+                    .map(file -> {
+                        try {
+                            service.files().delete(file.getId()).execute();
+                            return 1;
+                        } catch (IOException e) {
+                            return 0;
+                        }
+                    })
+                    .mapToInt(v -> v).sum();
+        })
                 .addOnSuccessListener(count -> LOGGER.info("{} models are dismissed from drive.", count))
                 .addOnFailureListener(e -> LOGGER.error("Failed to dismiss models from drive.", e));
     }
