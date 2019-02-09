@@ -1,56 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="320dp"
+    android:layout_height="wrap_content"
+    android:foreground="?android:attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    app:cardCornerRadius="8dp"
     >
 
-    <ImageView
-        android:id="@+id/image_view"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="320dp"
-        tools:ignore="ContentDescription"/>
+        android:layout_height="wrap_content">
 
-    <CheckBox
-        android:id="@+id/check_box"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        />
+        <ImageView
+            android:id="@+id/image_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:ignore="ContentDescription" />
 
-    <ImageView
-        android:id="@+id/marker_view"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_alignParentEnd="true"
-        android:layout_margin="2dp"
-        android:alpha="0.9"
-        android:src="@drawable/ic_baseline_bookmark_24px"
-        android:tint="@color/marker"
-        tools:ignore="ContentDescription" />
+        <CheckBox
+            android:id="@+id/check_box"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
 
-    <ImageView
-        android:id="@+id/synced_view"
-        android:layout_width="16dp"
-        android:layout_height="16dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_margin="8dp"
-        android:alpha="0.8"
-        android:src="@drawable/ic_baseline_cloud_24px"
-        tools:ignore="ContentDescription" />
+        <ImageView
+            android:id="@+id/marker_view"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="6dp"
+            android:layout_marginTop="6dp"
+            android:alpha="0.9"
+            android:src="@drawable/ic_baseline_bookmark_24px"
+            android:tint="@color/marker"
+            tools:ignore="ContentDescription" />
 
-    <View
-        android:id="@+id/click_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@id/image_view"
-        android:layout_alignEnd="@id/image_view"
-        android:layout_alignStart="@id/image_view"
-        android:layout_alignTop="@id/image_view"
-        android:background="?android:attr/selectableItemBackground"
-        android:clickable="true"
-        android:focusable="true"
-        />
+        <ImageView
+            android:id="@+id/synced_view"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:padding="8dp"
+            android:alpha="0.8"
+            android:src="@drawable/ic_baseline_cloud_24px"
+            tools:ignore="ContentDescription" />
 
-</RelativeLayout>
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>

@@ -80,8 +80,9 @@ final class DriveApiHelper {
 
         return Tasks.call(EXECUTOR, () -> {
             final FileList fileList = service.files().list().setQ(String.format("name = '%s' and trashed = false", model.getId())).execute();
-            if (!fileList.isEmpty())
+            if (!fileList.getFiles().isEmpty()) {
                 throw new IllegalArgumentException(model.getId() + " already exists in drive");
+            }
 
             final File content = new File();
             content.setParents(Collections.singletonList(ROOT_FOLDER));

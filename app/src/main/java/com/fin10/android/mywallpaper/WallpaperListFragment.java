@@ -59,7 +59,10 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
         @Override
         public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
-            getActivity().getMenuInflater().inflate(R.menu.wallpaper_list_fragment, menu);
+            final Activity activity = getActivity();
+            if (activity == null) return false;
+
+            activity.getMenuInflater().inflate(R.menu.wallpaper_list_fragment, menu);
             return true;
         }
 
@@ -70,7 +73,8 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
         @Override
         public boolean onActionItemClicked(final ActionMode actionMode, MenuItem menuItem) {
-            Activity activity = getActivity();
+            final Activity activity = getActivity();
+            if (activity == null) return false;
 
             switch (menuItem.getItemId()) {
                 case R.id.menu_item_share: {
@@ -112,10 +116,13 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
         @Override
         public void onDestroyActionMode(ActionMode actionMode) {
+            final Activity activity = getActivity();
+            if (activity == null) return;
+
             mAdapter.setSelectionMode(false);
             mActionMode = null;
 
-            if (PreferenceModel.isSyncEnabled(getActivity())) {
+            if (PreferenceModel.isSyncEnabled(activity)) {
                 mRefreshLayout.setEnabled(true);
             }
         }
@@ -144,12 +151,14 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
     };
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        final Activity activity = getActivity();
+        if (activity == null) return null;
+
         EventBus.getDefault().register(this);
 
         View root = inflater.inflate(R.layout.fragment_wallpaper_list, container, false);
 
-        StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         mAdapter = new WallpaperListAdapter(this);
 
         mEmptyView = root.findViewById(R.id.empty_view);
@@ -157,10 +166,15 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         discoveryButton.setOnClickListener(this);
 
         RecyclerView recyclerView = root.findViewById(R.id.recycler_view);
-        recyclerView.setLayoutManager(layoutManager);
+        StaggeredGridLayoutManager layoutManager = (StaggeredGridLayoutManager) recyclerView.getLayoutManager();
+        if (layoutManager == null) {
+            LOGGER.error("Did not found layout manager in recycler view");
+            return null;
+        }
+
         recyclerView.setAdapter(mAdapter);
         recyclerView.addItemDecoration(new GridSpacingItemDecoration(layoutManager.getSpanCount(),
-                GridSpacingItemDecoration.convertDpToPx(getResources(), 1)));
+                GridSpacingItemDecoration.convertDpToPx(getResources(), 8)));
 
         mAdapter.registerAdapterDataObserver(mObserver);
 
@@ -168,8 +182,8 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
         mRefreshLayout.setColorSchemeResources(R.color.primary);
         mRefreshLayout.setOnRefreshListener(this);
 
-        if (PreferenceModel.isSyncEnabled(getActivity())) {
-            SyncManager.sync(getActivity());
+        if (PreferenceModel.isSyncEnabled(activity)) {
+            SyncManager.sync(activity);
         }
 
         return root;
@@ -178,8 +192,11 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mSnackBar = Snackbar.make(getActivity().findViewById(R.id.coordinator_layout), R.string.it_needs_to_set_live_wallpaper, Snackbar.LENGTH_SHORT);
-        mSnackBar.setActionTextColor(ActivityCompat.getColor(getActivity(), R.color.primary));
+        final Activity activity = getActivity();
+        if (activity == null) return;
+
+        mSnackBar = Snackbar.make(activity.findViewById(R.id.coordinator_layout), R.string.it_needs_to_set_live_wallpaper, Snackbar.LENGTH_SHORT);
+        mSnackBar.setActionTextColor(ActivityCompat.getColor(activity, R.color.primary));
         mSnackBar.setAction(R.string.set, view -> {
             startActivity(LiveWallpaperService.getIntentForSetLiveWallpaper());
             mSnackBar.dismiss();
@@ -189,7 +206,10 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
     @Override
     public void onResume() {
         super.onResume();
-        mRefreshLayout.setEnabled(PreferenceModel.isSyncEnabled(getActivity()));
+        final Activity activity = getActivity();
+        if (activity == null) return;
+
+        mRefreshLayout.setEnabled(PreferenceModel.isSyncEnabled(activity));
 
         mAdapter.notifyDataSetChanged();
         int count = mAdapter.getItemCount();
@@ -207,6 +227,9 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
     @Override
     public void onItemClick(@NonNull View itemView, int position) {
+        final Activity activity = getActivity();
+        if (activity == null) return;
+
         if (mAdapter.isSelectionMode()) {
             mAdapter.setSelected(position);
             if (mActionMode != null) {
@@ -214,11 +237,11 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
             }
         } else {
             try {
-                if (!LiveWallpaperService.isSet(getActivity())) {
+                if (!LiveWallpaperService.isSet(activity)) {
                     if (!mSnackBar.isShown()) mSnackBar.show();
                 } else {
                     WallpaperModel model = mAdapter.mModels.get(position);
-                    WallpaperChanger.change(getActivity(), model.getId());
+                    WallpaperChanger.change(activity, model.getId());
                 }
             } catch (IndexOutOfBoundsException e) {
                 LOGGER.error(e.getLocalizedMessage(), e);
@@ -228,10 +251,13 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
     @Override
     public boolean onItemLongClick(@NonNull View itemView, int position) {
+        final Activity activity = getActivity();
+        if (activity == null) return false;
+
         if (!mAdapter.isSelectionMode()) {
             mAdapter.setSelectionMode(true);
             mRefreshLayout.setEnabled(false);
-            mActionMode = getActivity().startActionMode(mCallback);
+            mActionMode = activity.startActionMode(mCallback);
             onItemClick(itemView, position);
         }
 
@@ -249,7 +275,10 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
 
     @Override
     public void onRefresh() {
-        SyncManager.sync(getActivity());
+        final Activity activity = getActivity();
+        if (activity == null) return;
+
+        SyncManager.sync(activity);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -323,7 +352,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                 mModels.set(index, event.model);
                 notifyItemChanged(index);
             } else {
-                LOGGER.error("{} not founds.", event.model.getId());
+                LOGGER.warn("{} not founds.", event.model.getId());
             }
         }
 
@@ -395,9 +424,8 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                 itemView.setTag(R.id.check_box, itemView.findViewById(R.id.check_box));
                 itemView.setTag(R.id.synced_view, itemView.findViewById(R.id.synced_view));
 
-                View clickView = itemView.findViewById(R.id.click_view);
-                clickView.setOnClickListener(this);
-                clickView.setOnLongClickListener(this);
+                itemView.setOnClickListener(this);
+                itemView.setOnLongClickListener(this);
             }
 
             void setModel(@NonNull WallpaperModel model, boolean marked) {
@@ -409,7 +437,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                 Context context = itemView.getContext();
                 Glide.with(context)
                         .load(model.getImagePath())
-                        .centerCrop()
+                        .fitCenter()
                         .dontAnimate()
                         .into((ImageView) itemView.getTag(R.id.image_view));
 
