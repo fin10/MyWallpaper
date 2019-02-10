@@ -15,23 +15,22 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.text.TextUtils;
-import android.util.Pair;
 import android.util.SparseArray;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.fin10.android.mywallpaper.BuildConfig;
 import com.fin10.android.mywallpaper.MainActivity;
 import com.fin10.android.mywallpaper.R;
-import com.fin10.android.mywallpaper.Utils;
 import com.fin10.android.mywallpaper.drive.SyncManager;
 import com.fin10.android.mywallpaper.settings.PreferenceModel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
@@ -207,28 +206,23 @@ public final class WallpaperDownloadActivity extends Activity {
             Context context = this.context.get();
             if (context == null) return null;
 
-            Pair<Integer, Integer> size = Utils.getScreenSize(context);
-            if (size == null) return null;
-
             try {
-                File file = Glide.with(context)
-                        .load(uri)
-                        .downloadOnly(size.first, size.second)
-                        .get();
+                final InputStream input = context.getContentResolver().openInputStream(uri);
+                if (input == null) throw new IOException("Failed to open " + uri);
 
-                WallpaperModel result = WallpaperModel.addModel(context, file);
+                WallpaperModel result = WallpaperModel.addModel(context, input);
                 if (PreferenceModel.isSyncEnabled(context)) {
                     SyncManager.upload(context, result);
                 }
 
                 return Glide.with(context)
-                        .load(file.getAbsolutePath())
                         .asBitmap()
-                        .centerCrop()
-                        .into(context.getResources().getDimensionPixelSize(android.R.dimen.thumbnail_width),
+                        .load(result.getImagePath())
+                        .apply(RequestOptions.centerCropTransform())
+                        .submit(context.getResources().getDimensionPixelSize(android.R.dimen.thumbnail_width),
                                 context.getResources().getDimensionPixelSize(android.R.dimen.thumbnail_height))
                         .get();
-            } catch (InterruptedException | ExecutionException | IOException e) {
+            } catch (InterruptedException | ExecutionException | IOException | SecurityException e) {
                 LOGGER.error(e.getLocalizedMessage(), e);
             }
 

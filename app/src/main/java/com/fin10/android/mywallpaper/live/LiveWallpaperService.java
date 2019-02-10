@@ -16,14 +16,15 @@ import android.service.wallpaper.WallpaperService;
 import android.view.SurfaceHolder;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.animation.GlideAnimation;
-import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.FutureTarget;
+import com.bumptech.glide.request.RequestOptions;
 import com.fin10.android.mywallpaper.BuildConfig;
 import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.drive.SyncManager;
 import com.fin10.android.mywallpaper.model.WallpaperChanger;
 import com.fin10.android.mywallpaper.model.WallpaperModel;
 import com.fin10.android.mywallpaper.settings.PreferenceModel;
+import com.google.android.gms.tasks.Tasks;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -31,13 +32,24 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 import androidx.annotation.NonNull;
 
 public final class LiveWallpaperService extends WallpaperService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SyncManager.class);
+    private static final ThreadPoolExecutor EXECUTOR;
 
     private final BroadcastReceiver mReceiver = new WallpaperChanger.Receiver();
+
+    static {
+        int numCores = Runtime.getRuntime().availableProcessors();
+        EXECUTOR = new ThreadPoolExecutor(numCores * 2, numCores * 2,
+                60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+    }
 
     @NonNull
     public static Intent getIntentForSetLiveWallpaper() {
@@ -111,23 +123,29 @@ public final class LiveWallpaperService extends WallpaperService {
                 return;
             }
 
-            Glide.with(context)
-                    .load(model.getImagePath())
+            FutureTarget<Bitmap> target = Glide.with(context)
                     .asBitmap()
-                    .centerCrop()
-                    .into(new SimpleTarget<Bitmap>(width, height) {
+                    .load(model.getImagePath())
+                    .apply(RequestOptions.centerCropTransform())
+                    .submit(width, height);
 
-                        @Override
-                        public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
-                            Canvas canvas = holder.lockCanvas();
-                            if (canvas == null) {
-                                LOGGER.error("canvas is null.");
-                            } else {
-                                canvas.drawBitmap(resource, 0, 0, new Paint(Paint.ANTI_ALIAS_FLAG));
-                                holder.unlockCanvasAndPost(canvas);
-                            }
-                        }
-                    });
+            Tasks.call(EXECUTOR, target::get).continueWith(result -> {
+                Bitmap bitmap = result.getResult();
+                if (bitmap == null) {
+                    LOGGER.error("bitmap is null.");
+                    return false;
+                }
+
+                Canvas canvas = holder.lockCanvas();
+                if (canvas == null) {
+                    LOGGER.error("canvas is null.");
+                    return false;
+                } else {
+                    canvas.drawBitmap(bitmap, 0, 0, new Paint(Paint.ANTI_ALIAS_FLAG));
+                    holder.unlockCanvasAndPost(canvas);
+                    return true;
+                }
+            });
         }
 
         private void drawEmptyScreen(@NonNull SurfaceHolder holder, int width, int height) {

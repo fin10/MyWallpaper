@@ -13,12 +13,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 
 import androidx.annotation.NonNull;
-import androidx.test.InstrumentationRegistry;
-import androidx.test.runner.AndroidJUnit4;
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 @RunWith(AndroidJUnit4.class)
 public final class WallpaperChangerTest {
@@ -29,15 +30,15 @@ public final class WallpaperChangerTest {
 
     @Before
     public void setUp() throws IOException {
-        Context context = InstrumentationRegistry.getTargetContext();
+        Context context = ApplicationProvider.getApplicationContext();
         context.registerReceiver(receiver, WallpaperChanger.Receiver.getIntentFilter());
         EventBus.getDefault().register(this);
-        model = WallpaperModel.addModel(context, Files.createTempFile("tmp-", ".png").toFile());
+        model = WallpaperModel.addModel(context, new FileInputStream(Files.createTempFile("tmp-", ".png").toFile()));
     }
 
     @After
     public void tearDown() {
-        Context context = InstrumentationRegistry.getTargetContext();
+        Context context = ApplicationProvider.getApplicationContext();
         context.unregisterReceiver(receiver);
         EventBus.getDefault().unregister(this);
         WallpaperModel.removeModel(model);
@@ -45,7 +46,7 @@ public final class WallpaperChangerTest {
 
     @Test
     public void testChangeWallpaper() {
-        Context context = InstrumentationRegistry.getTargetContext();
+        Context context = ApplicationProvider.getApplicationContext();
         WallpaperChanger.change(context, model.getId());
 
         try {

@@ -15,18 +15,25 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+# for Glide
 -keep public class * implements com.bumptech.glide.module.GlideModule
--keep public enum com.bumptech.glide.load.resource.bitmap.ImageHeaderParser$** {
+-keep public class * extends com.bumptech.glide.module.AppGlideModule
+-keep public enum com.bumptech.glide.load.ImageHeaderParser$** {
   **[] $VALUES;
   public *;
 }
 
+-keepresourcexmlelements manifest/application/meta-data@value=GlideModule
+
+# DBFlow
 -keep class * extends com.raizlabs.android.dbflow.config.DatabaseHolder { *; }
 
+# logger
 -keep class ch.qos.** { *; }
 -keep class org.slf4j.** { *; }
 -keepattributes *Annotation*
 
+# eventbus
 -keepclassmembers class * {
     @org.greenrobot.eventbus.Subscribe <methods>;
 }

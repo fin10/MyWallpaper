@@ -16,6 +16,7 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.fin10.android.mywallpaper.drive.SyncManager;
 import com.fin10.android.mywallpaper.live.LiveWallpaperService;
 import com.fin10.android.mywallpaper.model.WallpaperChanger;
@@ -437,8 +438,7 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
                 Context context = itemView.getContext();
                 Glide.with(context)
                         .load(model.getImagePath())
-                        .fitCenter()
-                        .dontAnimate()
+                        .apply(RequestOptions.fitCenterTransform().dontAnimate())
                         .into((ImageView) itemView.getTag(R.id.image_view));
 
                 View markerView = (View) itemView.getTag(R.id.marker_view);

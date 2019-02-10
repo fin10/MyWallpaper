@@ -15,7 +15,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 
@@ -55,14 +57,19 @@ public final class WallpaperModel extends BaseModel {
     }
 
     @NonNull
-    public static WallpaperModel addModel(@NonNull Context context, @NonNull File file) throws IOException {
-        return addModel(context, System.currentTimeMillis(), file, false);
+    public static WallpaperModel addModel(@NonNull Context context, @NonNull InputStream input) throws IOException {
+        return addModel(context, System.currentTimeMillis(), input, false);
     }
 
     @NonNull
     public static WallpaperModel addModel(@NonNull Context context, long id, @NonNull File source, boolean synced) throws IOException {
+        return addModel(context, id, new FileInputStream(source), synced);
+    }
+
+    @NonNull
+    private static WallpaperModel addModel(@NonNull Context context, long id, @NonNull InputStream input, boolean synced) throws IOException {
         File dest = new File(context.getFilesDir().getAbsolutePath(), id + ".png");
-        FileUtils.copyFile(source, dest);
+        FileUtils.copyInputStreamToFile(input, dest);
 
         WallpaperModel model = new WallpaperModel();
         model.setId(id);
@@ -110,7 +117,7 @@ public final class WallpaperModel extends BaseModel {
         return imagePath;
     }
 
-    public void setImagePath(String imagePath) {
+    void setImagePath(String imagePath) {
         this.imagePath = imagePath;
     }
 

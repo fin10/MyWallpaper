@@ -16,8 +16,8 @@ import java.io.File;
 import java.io.IOException;
 
 import androidx.annotation.NonNull;
-import androidx.test.InstrumentationRegistry;
-import androidx.test.runner.AndroidJUnit4;
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 @RunWith(AndroidJUnit4.class)
 public final class WallpaperModelTest {
@@ -29,7 +29,7 @@ public final class WallpaperModelTest {
 
     static {
         try {
-            WallpaperDatabase.init(InstrumentationRegistry.getTargetContext());
+            WallpaperDatabase.init(ApplicationProvider.getApplicationContext());
             TEST_IMAGE_FILE = File.createTempFile("tmp-", ".png");
         } catch (Exception e) {
             Assert.fail(e.getLocalizedMessage());
@@ -51,7 +51,7 @@ public final class WallpaperModelTest {
 
     @Test
     public void testAddModel() throws IOException {
-        Context context = InstrumentationRegistry.getTargetContext();
+        Context context = ApplicationProvider.getApplicationContext();
         WallpaperModel model = WallpaperModel.addModel(context, TEST_ID, TEST_IMAGE_FILE, false);
         Assert.assertEquals(TEST_ID, model.getId());
         Assert.assertNotNull(model.getImagePath());
@@ -66,7 +66,7 @@ public final class WallpaperModelTest {
 
     @Test
     public void testGetModels() throws IOException {
-        Context context = InstrumentationRegistry.getTargetContext();
+        Context context = ApplicationProvider.getApplicationContext();
         WallpaperModel model = WallpaperModel.addModel(context, TEST_ID, TEST_IMAGE_FILE, false);
 
         WallpaperModel m = WallpaperModel.getModel(model.getId());
@@ -77,7 +77,7 @@ public final class WallpaperModelTest {
 
     @Test
     public void testRemoveModel() throws IOException {
-        Context context = InstrumentationRegistry.getTargetContext();
+        Context context = ApplicationProvider.getApplicationContext();
         WallpaperModel model = WallpaperModel.addModel(context, TEST_ID, TEST_IMAGE_FILE, false);
         WallpaperModel.removeModel(model);
 

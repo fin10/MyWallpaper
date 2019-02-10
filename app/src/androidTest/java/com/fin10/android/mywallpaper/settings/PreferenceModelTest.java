@@ -9,8 +9,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import androidx.test.InstrumentationRegistry;
-import androidx.test.runner.AndroidJUnit4;
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 @RunWith(AndroidJUnit4.class)
 public final class PreferenceModelTest {
@@ -23,7 +23,7 @@ public final class PreferenceModelTest {
     @Before
     public void setUp() {
         if (!initialized) {
-            WallpaperDatabase.init(InstrumentationRegistry.getTargetContext());
+            WallpaperDatabase.init(ApplicationProvider.getApplicationContext());
             initialized = true;
         }
     }
