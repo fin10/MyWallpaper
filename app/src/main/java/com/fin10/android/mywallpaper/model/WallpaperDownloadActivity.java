@@ -26,11 +26,15 @@ import com.fin10.android.mywallpaper.R;
 import com.fin10.android.mywallpaper.drive.SyncManager;
 import com.fin10.android.mywallpaper.settings.PreferenceModel;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
@@ -48,23 +52,42 @@ public final class WallpaperDownloadActivity extends Activity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         try {
-            Intent intent = getIntent();
-            String action = intent.getAction();
-            String type = intent.getType();
+            final Intent intent = getIntent();
+            final String action = intent.getAction();
+            final String type = intent.getType();
             if (TextUtils.isEmpty(type)) return;
 
             if (Intent.ACTION_SEND.equals(action)) {
-                Uri stream = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-                LOGGER.debug("image/* - stream: {}", stream);
-                DownloadService.download(this, stream);
-            } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
-                ArrayList<Uri> streams = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
-                for (Uri stream : streams) {
+                final Uri stream = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                try {
                     DownloadService.download(this, stream);
+                } catch (IOException e) {
+                    LOGGER.error(e.getMessage(), e);
+                }
+            } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
+                final ArrayList<Uri> streams = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+                for (Uri stream : streams) {
+                    try {
+                        DownloadService.download(this, stream);
+                    } catch (IOException e) {
+                        LOGGER.error(e.getMessage(), e);
+                    }
                 }
             }
         } finally {
             finish();
+        }
+    }
+
+    private static final class Pack implements Serializable {
+        final int id;
+        final String name;
+        final File file;
+
+        Pack(int id, @NonNull String name, @NonNull File file) {
+            this.id = id;
+            this.name = name;
+            this.file = file;
         }
     }
 
@@ -75,41 +98,48 @@ public final class WallpaperDownloadActivity extends Activity {
         private static final String ACTION_CANCEL_NOTIFICATION = BuildConfig.APPLICATION_ID + ".action.cancel_notification";
         private static final String ACTION_DOWNLOAD_WALLPAPER = BuildConfig.APPLICATION_ID + ".action.download_wallpaper";
 
-        private static final String EXTRA_ID = BuildConfig.APPLICATION_ID + ".extra.id";
-        private static final String EXTRA_URI = BuildConfig.APPLICATION_ID + ".extra.uri";
+        private static final String EXTRA_PACK = BuildConfig.APPLICATION_ID + ".extra.pack";
 
         private final SparseArray<AsyncTask> tasks = new SparseArray<>();
 
-        private static void download(@NonNull Context context, @NonNull Uri uri) {
-            Intent i = new Intent(context, DownloadService.class);
+        private static void download(@NonNull Context context, @NonNull Uri uri) throws IOException {
+            LOGGER.debug("uri:{}", uri);
+            if (uri.getPath() == null) throw new IllegalArgumentException("uri has no path");
+
+            final InputStream input = context.getContentResolver().openInputStream(uri);
+            if (input == null) throw new FileNotFoundException("Failed to get stream from " + uri);
+
+            final File temp = File.createTempFile("my-", null);
+            FileUtils.copyInputStreamToFile(input, temp);
+
+            final Intent i = new Intent(context, DownloadService.class);
             i.setAction(ACTION_DOWNLOAD_WALLPAPER);
-            i.putExtra(EXTRA_ID, uri.hashCode());
-            i.putExtra(EXTRA_URI, uri);
+            i.putExtra(EXTRA_PACK, new Pack(uri.hashCode(), uri.getPath(), temp));
             context.startService(i);
         }
 
         @NonNull
-        private static Notification createDownloadingNotification(@NonNull Context context, @NonNull Uri uri, int id) {
+        private static Notification createDownloadingNotification(@NonNull Context context, @NonNull Pack pack) {
             return new NotificationCompat.Builder(context, CHANNEL_ID)
                     .setSmallIcon(R.drawable.ic_baseline_wallpaper_24px)
                     .setColor(ContextCompat.getColor(context, R.color.primary))
                     .setCategory(Notification.CATEGORY_PROGRESS)
                     .setContentTitle(context.getString(R.string.downloading_new_wallpaper))
-                    .setContentText(String.valueOf(uri))
+                    .setContentText(pack.name)
                     .setProgress(0, 0, true)
                     .setOngoing(true)
                     .setShowWhen(false)
                     .addAction(R.drawable.ic_baseline_clear_24px,
                             context.getString(android.R.string.cancel),
-                            createCancelPendingIntent(context, id))
+                            createCancelPendingIntent(context, pack))
                     .build();
         }
 
         @NonNull
-        private static PendingIntent createCancelPendingIntent(@NonNull Context context, int id) {
+        private static PendingIntent createCancelPendingIntent(@NonNull Context context, @NonNull Pack pack) {
             Intent intent = new Intent(context, DownloadService.class);
             intent.setAction(ACTION_CANCEL_NOTIFICATION);
-            intent.putExtra(EXTRA_ID, id);
+            intent.putExtra(EXTRA_PACK, pack);
             return PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         }
 
@@ -146,9 +176,9 @@ public final class WallpaperDownloadActivity extends Activity {
 
         @Override
         public int onStartCommand(Intent intent, int flags, final int startId) {
-            final int id = intent.getIntExtra(EXTRA_ID, -1);
-            if (id == -1) {
-                LOGGER.error("There is no id.");
+            final Pack pack = (Pack) intent.getSerializableExtra(EXTRA_PACK);
+            if (pack == null) {
+                LOGGER.error("Pack not founds.");
                 return Service.START_NOT_STICKY;
             }
 
@@ -158,30 +188,23 @@ public final class WallpaperDownloadActivity extends Activity {
                 return Service.START_NOT_STICKY;
             }
 
-            String action = intent.getAction();
+            final String action = intent.getAction();
             if (ACTION_CANCEL_NOTIFICATION.equals(action)) {
-                LOGGER.info("Canceling {} notification", id);
-                notificationManager.cancel(id);
-                AsyncTask task = tasks.get(id);
+                LOGGER.info("Canceling {} notification", pack.id);
+                notificationManager.cancel(pack.id);
+                AsyncTask task = tasks.get(pack.id);
                 if (task != null) {
-                    tasks.delete(id);
+                    tasks.delete(pack.id);
                     task.cancel(true);
                 } else {
-                    LOGGER.error("{} task does not exists.", id);
+                    LOGGER.error("{} task does not exists.", pack.id);
                 }
             } else if (ACTION_DOWNLOAD_WALLPAPER.equals(action)) {
-                final Uri uri = intent.getParcelableExtra(EXTRA_URI);
-                LOGGER.debug("uri:{}", uri);
-                if (uri == null) {
-                    LOGGER.error("the intent has no uri.");
-                    return Service.START_NOT_STICKY;
-                }
+                notificationManager.notify(pack.id, createDownloadingNotification(this, pack));
 
-                notificationManager.notify(id, createDownloadingNotification(this, uri, id));
-
-                AsyncTask<Void, Void, Bitmap> task = new DownloadTask(this, tasks, uri);
+                AsyncTask<Void, Void, Bitmap> task = new DownloadTask(this, tasks, pack);
                 task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                tasks.put(id, task);
+                tasks.put(pack.id, task);
             }
 
             return Service.START_NOT_STICKY;
@@ -192,12 +215,12 @@ public final class WallpaperDownloadActivity extends Activity {
 
         private final WeakReference<Context> context;
         private final SparseArray<AsyncTask> tasks;
-        private final Uri uri;
+        private final Pack pack;
 
-        DownloadTask(@NonNull Context context, @NonNull SparseArray<AsyncTask> tasks, @NonNull Uri uri) {
+        DownloadTask(@NonNull Context context, @NonNull SparseArray<AsyncTask> tasks, @NonNull Pack pack) {
             this.context = new WeakReference<>(context);
             this.tasks = tasks;
-            this.uri = uri;
+            this.pack = pack;
         }
 
         @Nullable
@@ -207,10 +230,7 @@ public final class WallpaperDownloadActivity extends Activity {
             if (context == null) return null;
 
             try {
-                final InputStream input = context.getContentResolver().openInputStream(uri);
-                if (input == null) throw new IOException("Failed to open " + uri);
-
-                WallpaperModel result = WallpaperModel.addModel(context, input);
+                WallpaperModel result = WallpaperModel.addModel(context, pack.file);
                 if (PreferenceModel.isSyncEnabled(context)) {
                     SyncManager.upload(context, result);
                 }
@@ -241,10 +261,10 @@ public final class WallpaperDownloadActivity extends Activity {
             }
 
             if (result != null) {
-                notificationManager.notify(uri.hashCode(), createDownloadedNotification(context, result));
+                notificationManager.notify(pack.id, createDownloadedNotification(context, result));
                 Toast.makeText(context, R.string.new_wallpaper_is_added, Toast.LENGTH_SHORT).show();
             } else {
-                notificationManager.notify(uri.hashCode(), createFailedNotification(context, uri));
+                notificationManager.notify(pack.id, createFailedNotification(context, pack));
                 Toast.makeText(context, R.string.failed_to_download, Toast.LENGTH_SHORT).show();
             }
 
@@ -268,13 +288,13 @@ public final class WallpaperDownloadActivity extends Activity {
         }
 
         @NonNull
-        private static Notification createFailedNotification(@NonNull Context context, @NonNull Uri uri) {
+        private static Notification createFailedNotification(@NonNull Context context, @NonNull Pack pack) {
             return new NotificationCompat.Builder(context, DownloadService.CHANNEL_ID)
                     .setSmallIcon(R.drawable.ic_baseline_wallpaper_24px)
                     .setColor(ContextCompat.getColor(context, R.color.primary))
                     .setCategory(Notification.CATEGORY_ERROR)
                     .setContentTitle(context.getString(R.string.failed_to_download))
-                    .setStyle(new NotificationCompat.BigTextStyle().bigText(String.valueOf(uri)))
+                    .setStyle(new NotificationCompat.BigTextStyle().bigText(pack.name))
                     .setContentIntent(createAppLaunchPendingIntent(context))
                     .setAutoCancel(true)
                     .build();
