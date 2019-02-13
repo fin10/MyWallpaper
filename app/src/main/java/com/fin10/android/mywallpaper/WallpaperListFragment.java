@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.ActionMode;
@@ -435,10 +438,19 @@ public final class WallpaperListFragment extends Fragment implements OnItemEvent
             }
 
             void setModel(WallpaperModel model, boolean marked, boolean selected) {
-                Context context = itemView.getContext();
+                final Context context = itemView.getContext();
+
+                final BitmapFactory.Options opts = new BitmapFactory.Options();
+                opts.inJustDecodeBounds = true;
+                BitmapFactory.decodeFile(model.getImagePath(), opts);
+
                 Glide.with(context)
                         .load(model.getImagePath())
-                        .apply(RequestOptions.fitCenterTransform().dontAnimate())
+                        .apply(RequestOptions.sizeMultiplierOf(0.5f)
+                                .dontAnimate()
+                                .override(opts.outWidth, opts.outHeight)
+                                .placeholder(new ColorDrawable(Color.GRAY))
+                        )
                         .into((ImageView) itemView.getTag(R.id.image_view));
 
                 View markerView = (View) itemView.getTag(R.id.marker_view);
